@@ -6,8 +6,8 @@ import javafx.scene.shape.Rectangle;
 
 public class Tile extends Rectangle {
 
-    public static int HEIGHT = 100;
-    public static int WIDTH = 100;
+    public static int HEIGHT = 70;
+    public static int WIDTH = 70;
 
     private int posX;
     private int posY;

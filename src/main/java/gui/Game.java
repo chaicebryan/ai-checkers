@@ -11,11 +11,7 @@ import javafx.stage.Stage;
 
 public class Game extends Application {
 
-    private Board board;
-
     public Pane createBoard() {
-
-        board = new Board();
 
         Pane pane = new Pane();
         pane.setPrefSize(Board.WIDTH * Tile.WIDTH, Board.HEIGHT * Tile.HEIGHT);
@@ -71,7 +67,9 @@ public class Game extends Application {
 
         primaryStage.setScene(scene);
         primaryStage.setMaxHeight(Board.HEIGHT * Tile.HEIGHT);
+        primaryStage.setMinHeight(Board.HEIGHT * Tile.HEIGHT + 30);
         primaryStage.setMaxWidth(Board.WIDTH * Tile.WIDTH + 200);
+        primaryStage.setMinWidth(Board.WIDTH * Tile.WIDTH + 200);
         primaryStage.show();
     }
 
