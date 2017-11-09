@@ -1,7 +1,5 @@
 package main.java.gui;
 
-import com.sun.javafx.scene.control.skin.LabeledText;
-
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -11,7 +9,6 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
-import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 
@@ -40,18 +37,24 @@ public class Game extends Application {
                     tile = new Tile(x, y, TileType.BROWN);
                 }
 
+                pane.getChildren().add(tile);
+
+                }
+            }
+
+        for (int y = 0; y < Board.HEIGHT; y++) {
+            for (int x = 0; x < Board.WIDTH; x++) {
                 final Piece piece;
                 if (y <= 2 && (x + y) % 2 != 0) {
                     piece = new Piece(x, y, PieceType.BLACK);
                     board.getState()[x][y] = piece;
                 } else if (y >= 5 && (x + y) % 2 != 0) {
-                    piece = new Piece(x, y,PieceType.RED);
+                    piece = new Piece(x, y, PieceType.RED);
                     board.getState()[x][y] = piece;
                 } else {
                     piece = null;
                 }
 
-                pane.getChildren().add(tile);
 
                 if (piece != null) {
                     piece.setOnMousePressed(event -> {
@@ -72,6 +75,7 @@ public class Game extends Application {
         System.out.println(count);
         return pane;
     }
+
     @Override
     public void start(Stage primaryStage) throws Exception{
 
@@ -120,10 +124,9 @@ public class Game extends Application {
         );
 
         primaryStage.setScene(scene);
-        primaryStage.setMaxHeight(Board.HEIGHT * Tile.HEIGHT);
         primaryStage.setMinHeight(Board.HEIGHT * Tile.HEIGHT + 30);
-        primaryStage.setMaxWidth(Board.WIDTH * Tile.WIDTH + 200);
-        primaryStage.setMinWidth(Board.WIDTH * Tile.WIDTH + 200);
+        primaryStage.setMaxWidth(Board.WIDTH * Tile.WIDTH + 240);
+        primaryStage.setMinWidth(Board.WIDTH * Tile.WIDTH + 240);
         primaryStage.show();
     }
 

@@ -1,7 +1,5 @@
 package main.java.gui;
 
-import java.util.HashMap;
-
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
@@ -15,14 +13,12 @@ public class Piece extends Circle {
     private boolean selected;
     private PieceType pieceType;
 
-    private final Paint defaultFill = getStroke();
-    private final double defaultStrokeWidth = getStrokeWidth();
-
     public Piece(double posX, double posY, PieceType pieceType) {
         super(posX, posY, 0.7*35.0);
         this.posX = posX;
         this.posY = posY;
         selected = false;
+        this.pieceType = pieceType;
 
         relocate(posX * HEIGHT, posY * WIDTH);
 
@@ -36,12 +32,10 @@ public class Piece extends Circle {
             setFill(Paint.valueOf("#c40003"));
             setStroke(Paint.valueOf("#000"));
         }
-    }
 
-    public void moveTo(int x, int y) {
-        this.posX = x;
-        this.posY = y;
-        relocate(posX * HEIGHT, posY * HEIGHT);
+        setOnMouseDragged((e) -> {
+            relocate(e.getSceneX() - 240.0 - 35.0, e.getSceneY() - 35.0);
+        });
     }
 
     public void select() {
@@ -51,8 +45,14 @@ public class Piece extends Circle {
     }
 
     public void deselect() {
-        selected = false;
-        setStroke(Color.BLACK);
-        setStrokeWidth(1);
+        if (pieceType == PieceType.BLACK) {
+            selected = false;
+            setStroke(Color.WHITE);
+            setStrokeWidth(1);
+        } else {
+            selected = false;
+            setStroke(Color.BLACK);
+            setStrokeWidth(1);
+        }
     }
 }
