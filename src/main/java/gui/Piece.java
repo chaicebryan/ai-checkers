@@ -3,22 +3,24 @@ package main.java.gui;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
+import main.java.impl.Position;
+import main.java.utils.GameUtils;
 
 public class Piece extends Circle {
 
     public static int WIDTH = 70;
     public static int HEIGHT = 70;
-    private double posX;
-    private double posY;
     private boolean selected;
     private PieceType pieceType;
+    private Position boardPosition;
+    private Boolean isKing;
 
     public Piece(double posX, double posY, PieceType pieceType) {
         super(posX, posY, 0.7*35.0);
-        this.posX = posX;
-        this.posY = posY;
         selected = false;
+        boardPosition = new Position((int)posX, (int)posY);
         this.pieceType = pieceType;
+        isKing = false;
 
         relocate(posX * HEIGHT, posY * WIDTH);
 
@@ -54,5 +56,21 @@ public class Piece extends Circle {
             setStroke(Color.BLACK);
             setStrokeWidth(1);
         }
+    }
+
+    public void updatePositionTo(Position newPos) {
+        boardPosition.changeTo(newPos.getX(), newPos.getY());
+    }
+
+    public void makeKing() {
+        this.isKing = true;
+    }
+
+    public Position getPosition() {
+        return boardPosition;
+    }
+
+    public boolean isKing() {
+        return isKing;
     }
 }

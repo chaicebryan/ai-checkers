@@ -11,11 +11,15 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import main.java.impl.Position;
+import main.java.utils.GameUtils;
 
 public class Game extends Application {
 
     private Board board;
     private Piece currentlySelected;
+    Player player1;
+    Player player2;
 
     public Game() {
         board = new Board();
@@ -36,7 +40,7 @@ public class Game extends Application {
                 } else {
                     tile = new Tile(x, y, TileType.BROWN);
                 }
-
+                board.getState()[x][y] = tile;
                 pane.getChildren().add(tile);
 
                 }
@@ -47,10 +51,10 @@ public class Game extends Application {
                 final Piece piece;
                 if (y <= 2 && (x + y) % 2 != 0) {
                     piece = new Piece(x, y, PieceType.BLACK);
-                    board.getState()[x][y] = piece;
+                    board.getState()[x][y].setPiece(piece);
                 } else if (y >= 5 && (x + y) % 2 != 0) {
                     piece = new Piece(x, y, PieceType.RED);
-                    board.getState()[x][y] = piece;
+                    board.getState()[x][y].setPiece(piece);
                 } else {
                     piece = null;
                 }
@@ -68,11 +72,20 @@ public class Game extends Application {
                         }
                     });
 
+
+                    piece.setOnMouseReleased((event) -> {
+                        Position newPos = GameUtils.getInstance().convertToBoardPosition(
+                                        piece.getLayoutX(),
+                                        piece.getLayoutY()
+                        );
+
+                        Player player = new Player(PieceType.BLACK, true);
+                        board.attemptMove(piece, newPos, player);
+                    });
                     pane.getChildren().add(piece);
                 }
             }
         }
-        System.out.println(count);
         return pane;
     }
 

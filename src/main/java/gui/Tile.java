@@ -12,11 +12,13 @@ public class Tile extends Rectangle {
     private int posX;
     private int posY;
     private TileType type;
+    private Piece piece;
 
     public Tile(int posX, int posY, TileType type) {
         this.posX = posX;
         this.posY = posY;
         this.type = type;
+        piece = null;
 
         // The size of each rectangle
         setHeight(HEIGHT);
@@ -44,5 +46,21 @@ public class Tile extends Rectangle {
 
     public TileType getType() {
         return type;
+    }
+
+    public void setPiece(Piece piece) {
+        this.piece = piece;
+    }
+
+    public Piece getPiece() {
+        return piece;
+    }
+
+    public boolean hasPiece() {
+        return piece != null;
+    }
+
+    public void removePiece() {
+        this.piece = null;
     }
 }
