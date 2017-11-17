@@ -1,7 +1,9 @@
 package main.java.gui;
 
+import java.util.ArrayList;
+import java.util.HashMap;
+
 import main.java.impl.Position;
-import main.java.utils.GameUtils;
 
 public class Board {
 
@@ -19,7 +21,7 @@ public class Board {
     }
 
     public void attemptMove(Piece piece, Position newPos, Player player) {
-        if (moveIsValied(piece, newPos, player)) {
+        if (moveIsValid(piece, newPos, player)) {
             System.out.println("valid");
 
             // Update tile content
@@ -32,40 +34,74 @@ public class Board {
             piece.relocate(newPos.getX() * Piece.WIDTH, newPos.getY() * Piece.HEIGHT);
         } else {
             // Snap back to original position
-            System.out.println(piece.getPosition().getX());
-            System.out.println(piece.getPosition().getY());
             piece.relocate(piece.getPosition().getX() * Piece.WIDTH, piece.getPosition().getY() * Piece.HEIGHT);
         }
     }
 
-    private boolean moveIsValied(Piece piece, Position newPos, Player player) {
+    private boolean moveIsValid(Piece piece, Position newPos, Player player) {
         System.out.println("Old position: " + piece.getPosition().getX() + ", " + piece.getPosition().getY());
         System.out.println("New position: " + newPos.getX() + ", " + newPos.getY());
 
-        if (player.isHuman()) {
-            System.out.println("Player is human");
-            if (newPos.getY() >= piece.getPosition().getY()) {
-                return false;
-            }
 
-            if (newPos.getX() == piece.getPosition().getX()) {
-                return false;
-            }
+        // Don't let pieces go off the board
+        // This should come first to prevent any exceptions on further board operations
+        if (outOfBounds(newPos) || placedOnWrongColour(newPos)) {
+            System.out.println("bad");
+            return false;
+        }
+        
+        if (nonDiagonalMove(piece.getPosition(), newPos)) {
+            return false;
+        }
 
-            if (newPos.getY() == piece.getPosition().getY()) {
-                return false;
-            }
+        if (tileAlreadyOccupied(newPos)) {
+            return false;
+        }
 
-            if (newPos.getX() > WIDTH-1) {
-                return false;
-            }
-
-            if (this.tileAt(newPos).hasPiece()) {
-                return false;
-            }
+        if (!directionIsValid(piece, newPos, player)) {
+            return false;
         }
 
         return true;
+    }
+
+    private boolean outOfBounds(Position newPos) {
+        if (newPos.getX() > WIDTH-1 ||
+                newPos.getY() > HEIGHT-1 ||
+                newPos.getX() < 0 ||
+                newPos.getY() < 0 ) {
+            return true;
+        }
+        return false;
+    }
+
+    private boolean placedOnWrongColour(Position newPos) {
+        return tileAt(newPos).getType()  == TileType.YELLOW;
+    }
+
+    private boolean nonDiagonalMove(Position oldPos, Position newPos) {
+        return newPos.getX() == oldPos.getX() || newPos.getY() == oldPos.getY();
+    }
+
+    private boolean tileAlreadyOccupied(Position newPos) {
+        return this.tileAt(newPos).hasPiece();
+    }
+
+    private boolean directionIsValid(Piece piece, Position newPos, Player player) {
+        System.out.println("reached");
+        if (!piece.isKing()) {
+            if (player.getSide() == BoardSide.BOTTOM) {
+                    return newPos.getY() <= piece.getPosition().getY();
+            } else {
+                    return newPos.getY() >= piece.getPosition().getY();
+            }
+        }
+        return true;
+    }
+
+    private boolean pieceAtEdge(Piece piece) {
+        Position pos = piece.getPosition();
+        return pos.getX() != 0 && pos.getX() != WIDTH-1;
     }
 
     private Tile tileAt(Position pos) {

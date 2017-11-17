@@ -30,10 +30,8 @@ public class Game extends Application {
         Pane pane = new Pane();
         pane.setPrefSize(Board.WIDTH * Tile.WIDTH, Board.HEIGHT * Tile.HEIGHT);
 
-        int count = 0;
         for (int y = 0; y < Board.HEIGHT; y++) {
             for (int x = 0; x < Board.WIDTH; x++) {
-                count++;
                 Tile tile;
                 if ((x + y) % 2 == 0) {
                     tile = new Tile(x, y, TileType.YELLOW);
@@ -72,14 +70,13 @@ public class Game extends Application {
                         }
                     });
 
-
                     piece.setOnMouseReleased((event) -> {
                         Position newPos = GameUtils.getInstance().convertToBoardPosition(
                                         piece.getLayoutX(),
                                         piece.getLayoutY()
                         );
 
-                        Player player = new Player(PieceType.BLACK, true);
+                        Player player = new Player(PieceType.BLACK, true, BoardSide.TOP);
                         board.attemptMove(piece, newPos, player);
                     });
                     pane.getChildren().add(piece);

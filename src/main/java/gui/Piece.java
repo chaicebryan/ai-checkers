@@ -4,7 +4,6 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 import main.java.impl.Position;
-import main.java.utils.GameUtils;
 
 public class Piece extends Circle {
 
