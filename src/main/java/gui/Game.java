@@ -20,9 +20,13 @@ public class Game extends Application {
     private Piece currentlySelected;
     Player player1;
     Player player2;
+    Player currentPlayer;
 
     public Game() {
         board = new Board();
+        player1 = new Player(PieceType.BLACK, true, BoardSide.BOTTOM);
+        player2 = new Player(PieceType.RED, true, BoardSide.TOP);
+        currentPlayer = player1;
     }
 
     public Pane createBoard() {
@@ -42,21 +46,21 @@ public class Game extends Application {
                 pane.getChildren().add(tile);
 
                 }
-            }
+        }
 
         for (int y = 0; y < Board.HEIGHT; y++) {
             for (int x = 0; x < Board.WIDTH; x++) {
+
                 final Piece piece;
                 if (y <= 2 && (x + y) % 2 != 0) {
-                    piece = new Piece(x, y, PieceType.BLACK);
+                    piece = new Piece(x, y, PieceType.RED, BoardSide.TOP);
                     board.getState()[x][y].setPiece(piece);
                 } else if (y >= 5 && (x + y) % 2 != 0) {
-                    piece = new Piece(x, y, PieceType.RED);
+                    piece = new Piece(x, y, PieceType.BLACK, BoardSide.BOTTOM);
                     board.getState()[x][y].setPiece(piece);
                 } else {
                     piece = null;
                 }
-
 
                 if (piece != null) {
                     piece.setOnMousePressed(event -> {
@@ -76,14 +80,30 @@ public class Game extends Application {
                                         piece.getLayoutY()
                         );
 
-                        Player player = new Player(PieceType.BLACK, true, BoardSide.TOP);
-                        board.attemptMove(piece, newPos, player);
+                        boolean completedMove = board.attemptMove(piece, newPos, currentPlayer);
+
+                        if (completedMove) {
+                            System.out.println("completed");
+                            endPlayerTurn(currentPlayer);
+                        }
                     });
                     pane.getChildren().add(piece);
                 }
             }
         }
         return pane;
+    }
+
+    private void endPlayerTurn(Player player) {
+        if (player.equals(player1)) {
+            System.out.println("Changing to player 2");
+            currentPlayer = player2;
+            System.out.println("Current player side: " + currentPlayer.getSide());
+        } else {
+            System.out.println("Changing to player 1");
+            currentPlayer = player1;
+            System.out.println("Current player side: " + currentPlayer.getSide());
+        }
     }
 
     @Override

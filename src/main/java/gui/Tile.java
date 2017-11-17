@@ -4,6 +4,9 @@ package main.java.gui;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
 
+// This represents a tile on the game board,
+// A tile can either hold a piece or hold nothing
+// A tile has a position
 public class Tile extends Rectangle {
 
     public static int HEIGHT = 70;
@@ -11,7 +14,11 @@ public class Tile extends Rectangle {
 
     private int posX;
     private int posY;
+
+    // Represents the colour of the tile
     private TileType type;
+
+    // Reference to piece if this tile has one
     private Piece piece;
 
     public Tile(int posX, int posY, TileType type) {
