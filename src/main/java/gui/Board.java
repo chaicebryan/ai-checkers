@@ -7,6 +7,7 @@ import static main.java.gui.Tile.TR;
 
 import java.util.Map;
 
+import main.java.impl.Move;
 import main.java.impl.Position;
 
 // The Board class is a state representation of the board that contains a number of operations for editing this state
@@ -30,23 +31,22 @@ public class Board {
 
     // Attempts a move from the pieces original position to a specified new position
     // If the move is valid and was made then this method returns true so that we can end the players turn
-    public boolean attemptMove(Piece piece, Position newPos, Player player) {
-        System.out.println("yhhhhhhhh " + forceTakeRequired(piece));
-        if (moveIsValid(piece, newPos, player)) {
+    public boolean attemptMove(Move move) {
+        if (moveIsValid(move)) {
 
             // Update tile content
             // Remove piece from old position
-            this.tileAt(newPos).setPiece(piece);
-            this.removePieceAt(piece.getPosition());
+            this.tileAt(move.getDest()).setPiece(move.getPiece());
+            this.removePieceAt(move.getPiece().getPosition());
 
             // Move piece to new position
-            piece.updatePositionTo(newPos);
-            piece.relocate(newPos.getX() * Piece.WIDTH, newPos.getY() * Piece.HEIGHT);
+            move.getPiece().updatePositionTo(move.getDest());
+            move.getPiece().relocate(move.getDest().getX() * Piece.WIDTH,move.getDest().getY() * Piece.HEIGHT);
 
             return true;
         } else {
             // Snap back to original position
-            piece.relocate(piece.getPosition().getX() * Piece.WIDTH, piece.getPosition().getY() * Piece.HEIGHT);
+            move.getPiece().relocate(move.getPiece().getPosition().getX() * Piece.WIDTH, move.getPiece().getPosition().getY() * Piece.HEIGHT);
             return false;
         }
     }
@@ -54,27 +54,27 @@ public class Board {
     // Carries out a number of checks to determine if the attempted move is valid
     // It does this by considering the piece's current position and a specified new position
     // It also checks that this move is valid for the player, depending on which side they are on, on the board
-    private boolean moveIsValid(Piece piece, Position newPos, Player player) {
+    private boolean moveIsValid(Move move) {
         // Don't let pieces go off the board
         // This should come first to prevent any exceptions on further board operations
-        if (outOfBounds(newPos) || placedOnWrongColour(newPos)) {
+        if (outOfBounds(move.getDest()) || placedOnWrongColour(move.getDest())) {
             System.out.println("bad");
             return false;
         }
 
         // Only diagonal moves are allowed for any move to be valid
-        if (nonDiagonalMove(piece.getPosition(), newPos)) {
+        if (nonDiagonalMove(move.getOrigin(), move.getDest())) {
             return false;
         }
 
         // Can't move a piece to a tile that already contains a piece
-        if (tileAlreadyOccupied(newPos)) {
+        if (tileAlreadyOccupied(move.getDest())) {
             return false;
         }
 
         // Players at the bottom of the board can only move up and vice versa
         // But exceptions are made for king pieces
-        if (!directionIsValid(piece, newPos, player)) {
+        if (!directionIsValid(move)) {
             return false;
         }
 
@@ -174,17 +174,19 @@ public class Board {
     // Determines whether or not the direction a piece is being moved is valid given a number of factors
     // What side of the board does the piece belong to
     // Whether or not the piece is a king or not
-    private boolean directionIsValid(Piece piece, Position newPos, Player player) {
-        if (!piece.isKing()) {
-            if (piece.getSide() == player.getSide() && Side.BOTTOM == player.getSide()) {
-                if (newPos.getY() >= piece.getPosition().getY()) {
+    private boolean directionIsValid(Move move) {
+        Piece piece = move.getPiece();
+
+        if (!move.getPiece().isKing()) {
+            if (piece.getSide() == move.getPlayer().getSide() && Side.BOTTOM == move.getPlayer().getSide()) {
+                if (move.getDest().getY() >= piece.getPosition().getY()) {
                     return false;
                 }
-            } else if (piece.getSide() == Side.TOP && piece.getSide() == player.getSide()){
-                if (newPos.getY() <= piece.getPosition().getY()) {
+            } else if (piece.getSide() == Side.TOP && piece.getSide() == move.getPlayer().getSide()){
+                if (move.getDest().getY() <= piece.getPosition().getY()) {
                     return false;
                 }
-            } else if (piece.getSide() != player.getSide()) {
+            } else if (piece.getSide() != move.getPlayer().getSide()) {
                 return false;
             }
         }

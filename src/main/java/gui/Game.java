@@ -11,6 +11,7 @@ import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
+import main.java.impl.Move;
 import main.java.impl.Position;
 import main.java.utils.GameUtils;
 
@@ -80,7 +81,7 @@ public class Game extends Application {
                                         piece.getLayoutY()
                         );
 
-                        boolean completedMove = board.attemptMove(piece, newPos, currentPlayer);
+                        boolean completedMove = board.attemptMove(new Move(piece, newPos, currentPlayer));
 
                         if (completedMove) {
                             System.out.println("completed");
