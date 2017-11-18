@@ -19,6 +19,7 @@ public class Tile extends Rectangle {
     public static String TR = "tr";
     public static String BL = "bl";
     public static String BR = "br";
+    public static String NONE = "NONE";
 
     private int posX;
     private int posY;
@@ -38,8 +39,17 @@ public class Tile extends Rectangle {
 
         surrounding = new HashMap<>();
 
-        surrounding.put(TL, new Position(posX-1, posY-1));
-        surrounding.put(TR, new Position(posX+1, posY-1));
+        if (posX!=0 && posY!= 0) {
+            surrounding.put(TL, new Position(posX-1, posY-1));
+        } else {
+            surrounding.put(TL, null);
+        }
+
+        if (posX!=Board.HEIGHT-1 && posY!=Board.WIDTH-1) {
+            surrounding.put(TR, new Position(posX+1, posY-1));
+        } else {
+            surrounding.put(TR, null);
+        }
         surrounding.put(BL, new Position(posX-1, posY+1));
         surrounding.put(BR, new Position(posX+1, posY+1));
 

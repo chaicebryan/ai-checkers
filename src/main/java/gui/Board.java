@@ -5,10 +5,12 @@ import static main.java.gui.Tile.BR;
 import static main.java.gui.Tile.TL;
 import static main.java.gui.Tile.TR;
 
+import java.util.HashSet;
 import java.util.Map;
 
 import main.java.impl.Move;
 import main.java.impl.Position;
+import main.java.impl.Take;
 
 // The Board class is a state representation of the board that contains a number of operations for editing this state
 public class Board {
@@ -31,8 +33,8 @@ public class Board {
 
     // Attempts a move from the pieces original position to a specified new position
     // If the move is valid and was made then this method returns true so that we can end the players turn
-    public boolean attemptMove(Move move) {
-        if (moveIsValid(move)) {
+    public boolean attemptMove(Player player, Move move) {
+        if (moveIsValid(player, move)) {
 
             // Update tile content
             // Remove piece from old position
@@ -54,7 +56,7 @@ public class Board {
     // Carries out a number of checks to determine if the attempted move is valid
     // It does this by considering the piece's current position and a specified new position
     // It also checks that this move is valid for the player, depending on which side they are on, on the board
-    private boolean moveIsValid(Move move) {
+    private boolean moveIsValid(Player player, Move move) {
         // Don't let pieces go off the board
         // This should come first to prevent any exceptions on further board operations
         if (outOfBounds(move.getDest()) || placedOnWrongColour(move.getDest())) {
@@ -74,45 +76,47 @@ public class Board {
 
         // Players at the bottom of the board can only move up and vice versa
         // But exceptions are made for king pieces
-        if (!directionIsValid(move)) {
+        if (!directionIsValid(player, move)) {
             return false;
         }
 
         return true;
     }
 
-    public boolean forceTakeRequired(Piece piece) {
+    public HashSet<Move> findForceTakes(Piece piece) {
         Tile currentTile = tileAt(piece.getPosition());
         Map<String, Position> surroundingTiles = currentTile.getSurrounding();
 
         Side side = piece.getSide();
         boolean isKing = piece.isKing();
 
+        HashSet<Move> takes = new HashSet<>();
+
         if (!isKing) {
             if (side == Side.BOTTOM) {
                 if (tileAt(surroundingTiles.get(TL)).hasPiece()) {
                     Piece potentialOpponent = tileAt(surroundingTiles.get(TL)).getPiece();
                     if (potentialOpponent.getSide() != side && !tileAt(tileAt(potentialOpponent.getPosition()).getSurrounding().get(TL)).hasPiece()) {
-                        return true;
+                        takes.add(new Take(piece, tileAt(potentialOpponent.getPosition()).getSurrounding().get(TL), potentialOpponent));
                     }
                 }
                 if (tileAt(surroundingTiles.get(TR)).hasPiece()) {
                     Piece potentialOpponent = tileAt(surroundingTiles.get(TR)).getPiece();
                     if (potentialOpponent.getSide() != side && !tileAt(tileAt(potentialOpponent.getPosition()).getSurrounding().get(TR)).hasPiece()) {
-                        return true;
+                        takes.add(new Take(piece, tileAt(potentialOpponent.getPosition()).getSurrounding().get(TL), potentialOpponent));
                     }
                 }
             } else {
                 if (tileAt(surroundingTiles.get(BL)).hasPiece()) {
                     Piece potentialOpponent = tileAt(surroundingTiles.get(BL)).getPiece();
                     if (potentialOpponent.getSide() != side && !tileAt(tileAt(potentialOpponent.getPosition()).getSurrounding().get(BL)).hasPiece()) {
-                        return true;
+                        takes.add(new Take(piece, tileAt(potentialOpponent.getPosition()).getSurrounding().get(TL), potentialOpponent));
                     }
                 }
                 if (tileAt(surroundingTiles.get(BR)).hasPiece()) {
                     Piece potentialOpponent = tileAt(surroundingTiles.get(BR)).getPiece();
                     if (potentialOpponent.getSide() != side && !tileAt(tileAt(potentialOpponent.getPosition()).getSurrounding().get(BR)).hasPiece()) {
-                        return true;
+                        takes.add(new Take(piece, tileAt(potentialOpponent.getPosition()).getSurrounding().get(TL), potentialOpponent));
                     }
                 }
             }
@@ -120,29 +124,30 @@ public class Board {
             if (tileAt(surroundingTiles.get(TL)).hasPiece()) {
                 Piece potentialOpponent = tileAt(surroundingTiles.get(TL)).getPiece();
                 if (potentialOpponent.getSide() != side && !tileAt(tileAt(potentialOpponent.getPosition()).getSurrounding().get(TL)).hasPiece()) {
-                    return true;
+                    takes.add(new Take(piece, tileAt(potentialOpponent.getPosition()).getSurrounding().get(TL), potentialOpponent));
                 }
             }
             if (tileAt(surroundingTiles.get(TR)).hasPiece()) {
                 Piece potentialOpponent = tileAt(surroundingTiles.get(TR)).getPiece();
                 if (potentialOpponent.getSide() != side && !tileAt(tileAt(potentialOpponent.getPosition()).getSurrounding().get(TR)).hasPiece()) {
-                    return true;
+                    takes.add(new Take(piece, tileAt(potentialOpponent.getPosition()).getSurrounding().get(TL), potentialOpponent));
                 }
             }
             if (tileAt(surroundingTiles.get(BL)).hasPiece()) {
                 Piece potentialOpponent = tileAt(surroundingTiles.get(BL)).getPiece();
                 if (potentialOpponent.getSide() != side && !tileAt(tileAt(potentialOpponent.getPosition()).getSurrounding().get(BL)).hasPiece()) {
-                    return true;
+                    takes.add(new Take(piece, tileAt(potentialOpponent.getPosition()).getSurrounding().get(TL), potentialOpponent));
                 }
             }
             if (tileAt(surroundingTiles.get(BR)).hasPiece()) {
                 Piece potentialOpponent = tileAt(surroundingTiles.get(BR)).getPiece();
                 if (potentialOpponent.getSide() != side && !tileAt(tileAt(potentialOpponent.getPosition()).getSurrounding().get(BR)).hasPiece()) {
-                    return true;
+                    takes.add(new Take(piece, tileAt(potentialOpponent.getPosition()).getSurrounding().get(TL), potentialOpponent));
                 }
             }
         }
-        return false;
+        System.out.println(takes.toString());
+        return takes;
     }
 
     // Stops pieces from moving off of the board
@@ -174,19 +179,19 @@ public class Board {
     // Determines whether or not the direction a piece is being moved is valid given a number of factors
     // What side of the board does the piece belong to
     // Whether or not the piece is a king or not
-    private boolean directionIsValid(Move move) {
+    private boolean directionIsValid(Player player, Move move) {
         Piece piece = move.getPiece();
 
         if (!move.getPiece().isKing()) {
-            if (piece.getSide() == move.getPlayer().getSide() && Side.BOTTOM == move.getPlayer().getSide()) {
+            if (piece.getSide() == player.getSide() && Side.BOTTOM == player.getSide()) {
                 if (move.getDest().getY() >= piece.getPosition().getY()) {
                     return false;
                 }
-            } else if (piece.getSide() == Side.TOP && piece.getSide() == move.getPlayer().getSide()){
+            } else if (piece.getSide() == Side.TOP && piece.getSide() == player.getSide()){
                 if (move.getDest().getY() <= piece.getPosition().getY()) {
                     return false;
                 }
-            } else if (piece.getSide() != move.getPlayer().getSide()) {
+            } else if (piece.getSide() != player.getSide()) {
                 return false;
             }
         }

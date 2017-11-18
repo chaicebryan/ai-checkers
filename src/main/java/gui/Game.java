@@ -1,5 +1,9 @@
 package main.java.gui;
 
+import java.util.ArrayList;
+import java.util.HashSet;
+import java.util.List;
+
 import javafx.application.Application;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
@@ -13,21 +17,28 @@ import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import main.java.impl.Move;
 import main.java.impl.Position;
+import main.java.impl.Take;
 import main.java.utils.GameUtils;
 
 public class Game extends Application {
 
     private Board board;
     private Piece currentlySelected;
-    Player player1;
-    Player player2;
-    Player currentPlayer;
+    private Player player1;
+    private Player player2;
+    private Player currentPlayer;
+
+    private List<Piece> blackPieces;
+    private List<Piece> redPieces;
 
     public Game() {
         board = new Board();
         player1 = new Player(PieceType.BLACK, true, Side.BOTTOM);
         player2 = new Player(PieceType.RED, true, Side.TOP);
         currentPlayer = player1;
+
+        blackPieces = new ArrayList<>();
+        redPieces = new ArrayList<>();
     }
 
     public Pane createBoard() {
@@ -55,9 +66,11 @@ public class Game extends Application {
                 final Piece piece;
                 if (y <= 2 && (x + y) % 2 != 0) {
                     piece = new Piece(x, y, PieceType.RED, Side.TOP);
+                    redPieces.add(piece);
                     board.getState()[x][y].setPiece(piece);
                 } else if (y >= 5 && (x + y) % 2 != 0) {
                     piece = new Piece(x, y, PieceType.BLACK, Side.BOTTOM);
+                    blackPieces.add(piece);
                     board.getState()[x][y].setPiece(piece);
                 } else {
                     piece = null;
@@ -81,7 +94,7 @@ public class Game extends Application {
                                         piece.getLayoutY()
                         );
 
-                        boolean completedMove = board.attemptMove(new Move(piece, newPos, currentPlayer));
+                        boolean completedMove = board.attemptMove(currentPlayer, new Move(piece, newPos));
 
                         if (completedMove) {
                             System.out.println("completed");
@@ -100,10 +113,24 @@ public class Game extends Application {
             System.out.println("Changing to player 2");
             currentPlayer = player2;
             System.out.println("Current player side: " + currentPlayer.getSide());
+            redPieces.forEach((piece -> {
+                HashSet<Move> takes = board.findForceTakes(piece);
+
+                takes.forEach((take) -> {
+                    ((Take)take).getPiece().select();
+                });
+            }));
         } else {
             System.out.println("Changing to player 1");
             currentPlayer = player1;
             System.out.println("Current player side: " + currentPlayer.getSide());
+            blackPieces.forEach((piece -> {
+                HashSet<Move> takes = board.findForceTakes(piece);
+
+                takes.forEach((take) -> {
+                    ((Take)take).getPiece().select();
+                });
+            }));
         }
     }
 

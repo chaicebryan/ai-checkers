@@ -7,8 +7,8 @@ public class Take extends Move {
 
     private Piece target;
 
-    public Take(Piece taker, Position dest, Player player, Piece target) {
-        super(taker, dest, player);
+    public Take(Piece taker, Position dest, Piece target) {
+        super(taker, dest);
         this.target = target;
     }
 
