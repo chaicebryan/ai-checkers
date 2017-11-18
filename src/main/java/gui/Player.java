@@ -11,9 +11,9 @@ public class Player {
     private boolean isHuman;
 
     // What side of the board is the player starting from
-    private BoardSide side;
+    private Side side;
 
-    public Player(PieceType color, boolean isHuman, BoardSide side) {
+    public Player(PieceType color, boolean isHuman, Side side) {
         this.color = color;
         this.isHuman = isHuman;
         this.side = side;
@@ -27,11 +27,11 @@ public class Player {
         return isHuman;
     }
 
-    public void setSide(BoardSide side) {
+    public void setSide(Side side) {
         this.side = side;
     }
 
-    public BoardSide getSide() {
+    public Side getSide() {
         return side;
     }
 }

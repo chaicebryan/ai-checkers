@@ -24,8 +24,8 @@ public class Game extends Application {
 
     public Game() {
         board = new Board();
-        player1 = new Player(PieceType.BLACK, true, BoardSide.BOTTOM);
-        player2 = new Player(PieceType.RED, true, BoardSide.TOP);
+        player1 = new Player(PieceType.BLACK, true, Side.BOTTOM);
+        player2 = new Player(PieceType.RED, true, Side.TOP);
         currentPlayer = player1;
     }
 
@@ -53,10 +53,10 @@ public class Game extends Application {
 
                 final Piece piece;
                 if (y <= 2 && (x + y) % 2 != 0) {
-                    piece = new Piece(x, y, PieceType.RED, BoardSide.TOP);
+                    piece = new Piece(x, y, PieceType.RED, Side.TOP);
                     board.getState()[x][y].setPiece(piece);
                 } else if (y >= 5 && (x + y) % 2 != 0) {
-                    piece = new Piece(x, y, PieceType.BLACK, BoardSide.BOTTOM);
+                    piece = new Piece(x, y, PieceType.BLACK, Side.BOTTOM);
                     board.getState()[x][y].setPiece(piece);
                 } else {
                     piece = null;

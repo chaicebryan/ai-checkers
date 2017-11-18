@@ -1,8 +1,11 @@
 package main.java.gui;
 
 
+import java.util.HashMap;
+
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
+import main.java.impl.Position;
 
 // This represents a tile on the game board,
 // A tile can either hold a piece or hold nothing
@@ -12,8 +15,14 @@ public class Tile extends Rectangle {
     public static int HEIGHT = 70;
     public static int WIDTH = 70;
 
+    public static String TL = "tl";
+    public static String TR = "tr";
+    public static String BL = "bl";
+    public static String BR = "br";
+
     private int posX;
     private int posY;
+    private HashMap<String, Position> surrounding;
 
     // Represents the colour of the tile
     private TileType type;
@@ -26,6 +35,13 @@ public class Tile extends Rectangle {
         this.posY = posY;
         this.type = type;
         piece = null;
+
+        surrounding = new HashMap<>();
+
+        surrounding.put(TL, new Position(posX-1, posY-1));
+        surrounding.put(TR, new Position(posX+1, posY-1));
+        surrounding.put(BL, new Position(posX-1, posY+1));
+        surrounding.put(BR, new Position(posX+1, posY+1));
 
         // The size of each rectangle
         setHeight(HEIGHT);
@@ -69,5 +85,9 @@ public class Tile extends Rectangle {
 
     public void removePiece() {
         this.piece = null;
+    }
+
+    public HashMap<String, Position> getSurrounding() {
+        return surrounding;
     }
 }

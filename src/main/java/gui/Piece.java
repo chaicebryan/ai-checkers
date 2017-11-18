@@ -35,9 +35,9 @@ public class Piece extends Circle implements Comparable<Piece> {
     private HashSet<Piece> nearbyOpponents;
 
     // The side fo the board that this piece started from
-    private BoardSide boardSide;
+    private Side side;
 
-    public Piece(double posX, double posY, PieceType pieceType, BoardSide side) {
+    public Piece(double posX, double posY, PieceType pieceType, Side side) {
         super(posX, posY, 0.7*35.0);
         selected = false;
         boardPosition = new Position((int)posX, (int)posY);
@@ -45,7 +45,7 @@ public class Piece extends Circle implements Comparable<Piece> {
         isKing = false;
         nearbyPieces = new HashSet<>();
         nearbyOpponents = new HashSet<>();
-        this.boardSide = side;
+        this.side = side;
 
         // Draw piece to its initial position on the UI
         relocate(posX * HEIGHT, posY * WIDTH);
@@ -139,8 +139,8 @@ public class Piece extends Circle implements Comparable<Piece> {
         return nearbyOpponents;
     }
 
-    public BoardSide getBoardSide() {
-        return boardSide;
+    public Side getSide() {
+        return side;
     }
 
     @Override
