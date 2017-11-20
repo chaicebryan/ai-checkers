@@ -1,7 +1,6 @@
 package main.java.impl;
 
 import main.java.gui.Piece;
-import main.java.gui.Player;
 
 public class Take extends Move {
 
@@ -14,5 +13,10 @@ public class Take extends Move {
 
     public Piece getTarget() {
         return target;
+    }
+
+    @Override
+    public int hashCode() {
+        return 41 * (41 + getOrigin().getX() + dest.getX() + getOrigin().getY() + dest.getY());
     }
 }

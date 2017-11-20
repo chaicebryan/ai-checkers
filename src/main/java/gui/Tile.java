@@ -45,13 +45,23 @@ public class Tile extends Rectangle {
             surrounding.put(TL, null);
         }
 
-        if (posX!=Board.HEIGHT-1 && posY!=Board.WIDTH-1) {
+        if (posX!=Board.HEIGHT-1 && posY!=0) {
             surrounding.put(TR, new Position(posX+1, posY-1));
         } else {
             surrounding.put(TR, null);
         }
-        surrounding.put(BL, new Position(posX-1, posY+1));
-        surrounding.put(BR, new Position(posX+1, posY+1));
+
+        if (posX!= 0 && posY!=HEIGHT-1) {
+            surrounding.put(BL, new Position(posX-1, posY+1));
+        } else {
+            surrounding.put(BL, null);
+        }
+
+        if (posX != WIDTH-1 && posY!=HEIGHT-1) {
+            surrounding.put(BR, new Position(posX+1, posY+1));
+        } {
+            surrounding.put(BR, null);
+        }
 
         // The size of each rectangle
         setHeight(HEIGHT);

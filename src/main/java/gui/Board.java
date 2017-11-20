@@ -7,6 +7,7 @@ import static main.java.gui.Tile.TR;
 
 import java.util.HashSet;
 import java.util.Map;
+import java.util.Set;
 
 import main.java.impl.Move;
 import main.java.impl.Position;
@@ -35,7 +36,6 @@ public class Board {
     // If the move is valid and was made then this method returns true so that we can end the players turn
     public boolean attemptMove(Player player, Move move) {
         if (moveIsValid(player, move)) {
-
             // Update tile content
             // Remove piece from old position
             this.tileAt(move.getDest()).setPiece(move.getPiece());
@@ -52,6 +52,27 @@ public class Board {
             return false;
         }
     }
+
+    public boolean attemptMove(Player player, Move move, Set<Take> takes) {
+
+        System.out.println(takes);
+        System.out.println(move);
+        if (takes.contains(move)) {
+            // Update tile content
+            // Remove piece from old position
+            this.tileAt(move.getDest()).setPiece(move.getPiece());
+            this.removePieceAt(move.getPiece().getPosition());
+            System.out.println("bigman");
+            // Move piece to new position
+            move.getPiece().updatePositionTo(move.getDest());
+            move.getPiece().relocate(move.getDest().getX() * Piece.WIDTH, move.getDest().getY() * Piece.HEIGHT);
+            return true;
+        } else {
+            move.getPiece().relocate(move.getPiece().getPosition().getX() * Piece.WIDTH, move.getPiece().getPosition().getY() * Piece.HEIGHT);
+            return false;
+        }
+    }
+
 
     // Carries out a number of checks to determine if the attempted move is valid
     // It does this by considering the piece's current position and a specified new position
@@ -83,70 +104,69 @@ public class Board {
         return true;
     }
 
-    public HashSet<Move> findForceTakes(Piece piece) {
+    public HashSet<Take> findForceTakes(Piece piece) {
         Tile currentTile = tileAt(piece.getPosition());
         Map<String, Position> surroundingTiles = currentTile.getSurrounding();
 
         Side side = piece.getSide();
         boolean isKing = piece.isKing();
 
-        HashSet<Move> takes = new HashSet<>();
+        HashSet<Take> takes = new HashSet<>();
 
         if (!isKing) {
             if (side == Side.BOTTOM) {
-                if (tileAt(surroundingTiles.get(TL)).hasPiece()) {
+                if (surroundingTiles.get(TL) != null && tileAt(surroundingTiles.get(TL)).hasPiece()) {
                     Piece potentialOpponent = tileAt(surroundingTiles.get(TL)).getPiece();
                     if (potentialOpponent.getSide() != side && !tileAt(tileAt(potentialOpponent.getPosition()).getSurrounding().get(TL)).hasPiece()) {
                         takes.add(new Take(piece, tileAt(potentialOpponent.getPosition()).getSurrounding().get(TL), potentialOpponent));
                     }
                 }
-                if (tileAt(surroundingTiles.get(TR)).hasPiece()) {
+                if (surroundingTiles.get(TR) != null && tileAt(surroundingTiles.get(TR)).hasPiece()) {
                     Piece potentialOpponent = tileAt(surroundingTiles.get(TR)).getPiece();
                     if (potentialOpponent.getSide() != side && !tileAt(tileAt(potentialOpponent.getPosition()).getSurrounding().get(TR)).hasPiece()) {
-                        takes.add(new Take(piece, tileAt(potentialOpponent.getPosition()).getSurrounding().get(TL), potentialOpponent));
+                        takes.add(new Take(piece, tileAt(potentialOpponent.getPosition()).getSurrounding().get(TR), potentialOpponent));
                     }
                 }
             } else {
-                if (tileAt(surroundingTiles.get(BL)).hasPiece()) {
+                if (surroundingTiles.get(BL) != null && tileAt(surroundingTiles.get(BL)).hasPiece()) {
                     Piece potentialOpponent = tileAt(surroundingTiles.get(BL)).getPiece();
                     if (potentialOpponent.getSide() != side && !tileAt(tileAt(potentialOpponent.getPosition()).getSurrounding().get(BL)).hasPiece()) {
-                        takes.add(new Take(piece, tileAt(potentialOpponent.getPosition()).getSurrounding().get(TL), potentialOpponent));
+                        takes.add(new Take(piece, tileAt(potentialOpponent.getPosition()).getSurrounding().get(BL), potentialOpponent));
                     }
                 }
-                if (tileAt(surroundingTiles.get(BR)).hasPiece()) {
+                if (surroundingTiles.get(BR) != null && tileAt(surroundingTiles.get(BR)).hasPiece()) {
                     Piece potentialOpponent = tileAt(surroundingTiles.get(BR)).getPiece();
                     if (potentialOpponent.getSide() != side && !tileAt(tileAt(potentialOpponent.getPosition()).getSurrounding().get(BR)).hasPiece()) {
-                        takes.add(new Take(piece, tileAt(potentialOpponent.getPosition()).getSurrounding().get(TL), potentialOpponent));
+                        takes.add(new Take(piece, tileAt(potentialOpponent.getPosition()).getSurrounding().get(BR), potentialOpponent));
                     }
                 }
             }
         } else {
-            if (tileAt(surroundingTiles.get(TL)).hasPiece()) {
+            if (surroundingTiles.get(TL) != null && tileAt(surroundingTiles.get(TL)).hasPiece()) {
                 Piece potentialOpponent = tileAt(surroundingTiles.get(TL)).getPiece();
                 if (potentialOpponent.getSide() != side && !tileAt(tileAt(potentialOpponent.getPosition()).getSurrounding().get(TL)).hasPiece()) {
                     takes.add(new Take(piece, tileAt(potentialOpponent.getPosition()).getSurrounding().get(TL), potentialOpponent));
                 }
             }
-            if (tileAt(surroundingTiles.get(TR)).hasPiece()) {
+            if (surroundingTiles.get(TR) != null && tileAt(surroundingTiles.get(TR)).hasPiece()) {
                 Piece potentialOpponent = tileAt(surroundingTiles.get(TR)).getPiece();
                 if (potentialOpponent.getSide() != side && !tileAt(tileAt(potentialOpponent.getPosition()).getSurrounding().get(TR)).hasPiece()) {
-                    takes.add(new Take(piece, tileAt(potentialOpponent.getPosition()).getSurrounding().get(TL), potentialOpponent));
+                    takes.add(new Take(piece, tileAt(potentialOpponent.getPosition()).getSurrounding().get(TR), potentialOpponent));
                 }
             }
-            if (tileAt(surroundingTiles.get(BL)).hasPiece()) {
+            if (surroundingTiles.get(BL) != null && tileAt(surroundingTiles.get(BL)).hasPiece()) {
                 Piece potentialOpponent = tileAt(surroundingTiles.get(BL)).getPiece();
                 if (potentialOpponent.getSide() != side && !tileAt(tileAt(potentialOpponent.getPosition()).getSurrounding().get(BL)).hasPiece()) {
-                    takes.add(new Take(piece, tileAt(potentialOpponent.getPosition()).getSurrounding().get(TL), potentialOpponent));
+                    takes.add(new Take(piece, tileAt(potentialOpponent.getPosition()).getSurrounding().get(BL), potentialOpponent));
                 }
             }
-            if (tileAt(surroundingTiles.get(BR)).hasPiece()) {
+            if (surroundingTiles.get(BR) != null && tileAt(surroundingTiles.get(BR)).hasPiece()) {
                 Piece potentialOpponent = tileAt(surroundingTiles.get(BR)).getPiece();
                 if (potentialOpponent.getSide() != side && !tileAt(tileAt(potentialOpponent.getPosition()).getSurrounding().get(BR)).hasPiece()) {
-                    takes.add(new Take(piece, tileAt(potentialOpponent.getPosition()).getSurrounding().get(TL), potentialOpponent));
+                    takes.add(new Take(piece, tileAt(potentialOpponent.getPosition()).getSurrounding().get(BR), potentialOpponent));
                 }
             }
         }
-        System.out.println(takes.toString());
         return takes;
     }
 
@@ -205,7 +225,7 @@ public class Board {
     }
 
     // Returns the tile at a specified position
-    private Tile tileAt(Position pos) {
+    public Tile tileAt(Position pos) {
         return state[pos.getX()][pos.getY()];
     }
 

@@ -1,8 +1,11 @@
 package main.java.gui;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -13,6 +16,7 @@ import javafx.scene.layout.BorderPane;
 import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
+import javafx.scene.paint.Color;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import main.java.impl.Move;
@@ -28,6 +32,7 @@ public class Game extends Application {
     private Player player2;
     private Player currentPlayer;
 
+    ArrayList<Piece> pieces;
     private List<Piece> blackPieces;
     private List<Piece> redPieces;
 
@@ -37,6 +42,7 @@ public class Game extends Application {
         player2 = new Player(PieceType.RED, true, Side.TOP);
         currentPlayer = player1;
 
+        pieces = new ArrayList<>();
         blackPieces = new ArrayList<>();
         redPieces = new ArrayList<>();
     }
@@ -77,61 +83,88 @@ public class Game extends Application {
                 }
 
                 if (piece != null) {
-                    piece.setOnMousePressed(event -> {
-                        if (currentlySelected == null) {
-                            piece.select();
-                            currentlySelected = piece;
-                        } else {
-                            currentlySelected.deselect();
-                            piece.select();
-                            currentlySelected = piece;
-                        }
-                    });
-
-                    piece.setOnMouseReleased((event) -> {
-                        Position newPos = GameUtils.getInstance().convertToBoardPosition(
-                                        piece.getLayoutX(),
-                                        piece.getLayoutY()
-                        );
-
-                        boolean completedMove = board.attemptMove(currentPlayer, new Move(piece, newPos));
-
-                        if (completedMove) {
-                            System.out.println("completed");
-                            endPlayerTurn(currentPlayer);
-                        }
-                    });
                     pane.getChildren().add(piece);
                 }
             }
         }
+
+        pieces.addAll(blackPieces);
+        pieces.addAll(redPieces);
+
+        setUpPieceLogic();
+
         return pane;
     }
 
+    private void setUpPieceLogic() {
+        pieces.forEach((piece -> {
+            piece.setOnMouseReleased((event) -> {
+                Position newPos = GameUtils.getInstance().convertToBoardPosition(
+                        piece.getLayoutX(),
+                        piece.getLayoutY()
+                );
+
+                Set<Take> takes;
+                if (currentPlayer.getSide().equals(Side.TOP)) {
+                    takes = redPieces.stream()
+                            .map(board::findForceTakes)
+                            .flatMap(HashSet::stream)
+                            .collect(Collectors.toSet());
+                } else {
+                    takes = blackPieces.stream()
+                            .map(board::findForceTakes)
+                            .flatMap(HashSet::stream)
+                            .collect(Collectors.toSet());
+                }
+
+                boolean completedMove;
+                if (!takes.isEmpty()) {
+                    completedMove = board.attemptMove(currentPlayer, new Move(piece, newPos), takes);
+                } else {
+                    completedMove = board.attemptMove(currentPlayer, new Move(piece, newPos));
+                }
+
+                // boolean completedMove = board.attemptMove(currentPlayer, new Move(piece, newPos));
+
+                if (completedMove) {
+                    System.out.println("completed");
+                    endPlayerTurn(currentPlayer);
+                }
+            });
+        }));
+    }
+
     private void endPlayerTurn(Player player) {
-        if (player.equals(player1)) {
+        if (player.getSide().equals(player1.getSide())) {
             System.out.println("Changing to player 2");
             currentPlayer = player2;
             System.out.println("Current player side: " + currentPlayer.getSide());
+
             redPieces.forEach((piece -> {
-                HashSet<Move> takes = board.findForceTakes(piece);
+                HashSet<Take> takes = board.findForceTakes(piece);
 
                 takes.forEach((take) -> {
-                    ((Take)take).getPiece().select();
+                    markForceTake(take);
                 });
             }));
+
         } else {
             System.out.println("Changing to player 1");
             currentPlayer = player1;
             System.out.println("Current player side: " + currentPlayer.getSide());
             blackPieces.forEach((piece -> {
-                HashSet<Move> takes = board.findForceTakes(piece);
+                HashSet<Take> takes = board.findForceTakes(piece);
 
                 takes.forEach((take) -> {
-                    ((Take)take).getPiece().select();
+                    markForceTake(take);
                 });
             }));
         }
+    }
+
+    private void markForceTake(Take take) {
+        take.getPiece().setStroke(Color.BLUE);
+        board.tileAt(take.getDest()).setFill(Color.RED);
     }
 
     @Override
