@@ -5,6 +5,7 @@ import java.util.HashSet;
 import javafx.scene.image.Image;
 import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.ImagePattern;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
 import main.java.impl.Position;
@@ -114,10 +115,11 @@ public class Piece extends Circle implements Comparable<Piece> {
     public void makeKing() {
         this.isKing = true;
 
-        Image image = new Image("crown.png");
+        Image image = new Image("redking.png");
 
-        ImageView imv = new ImageView();
-        imv.setImage(image);
+        ImagePattern imv = new ImagePattern(image);
+
+        this.setFill(imv);
     }
 
     public Position getPosition() {
