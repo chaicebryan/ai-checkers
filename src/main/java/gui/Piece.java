@@ -2,6 +2,8 @@ package main.java.gui;
 
 import java.util.HashSet;
 
+import javafx.scene.image.Image;
+import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
@@ -72,6 +74,11 @@ public class Piece extends Circle implements Comparable<Piece> {
         setOnMouseDragged((e) -> {
             relocate(e.getSceneX() - 240.0 - 35.0, e.getSceneY() - 35.0);
         });
+
+        setOnMousePressed((e) -> {
+          System.out.println(this.toString());
+          this.makeKing();
+        });
     }
 
     // Add nearby piece to list of nearby pieces
@@ -106,6 +113,11 @@ public class Piece extends Circle implements Comparable<Piece> {
     // Make this piece a king
     public void makeKing() {
         this.isKing = true;
+
+        Image image = new Image("crown.png");
+
+        ImageView imv = new ImageView();
+        imv.setImage(image);
     }
 
     public Position getPosition() {

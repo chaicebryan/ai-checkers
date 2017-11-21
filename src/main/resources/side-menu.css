@@ -1,5 +1,5 @@
 .hbox {
-    -fx-background-image: url("http://docs.oracle.com/javafx/2/get_started/background.jpg");
+    -fx-background-image: url("background.jpg");
 }
 
 #header {

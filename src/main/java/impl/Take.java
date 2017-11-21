@@ -19,4 +19,9 @@ public class Take extends Move {
     public int hashCode() {
         return 41 * (41 + getOrigin().getX() + dest.getX() + getOrigin().getY() + dest.getY());
     }
+
+    @Override
+    public String toString() {
+        return "[" + getOrigin().toString() + ", " + getDest().toString() + ", Attacker: " + piece.toString() + ", Victim: " + getTarget().toString() + "]";
+    }
 }

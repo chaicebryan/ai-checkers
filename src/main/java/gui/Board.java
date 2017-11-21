@@ -57,7 +57,6 @@ public class Board {
 
     public Optional<Take> attemptMove(Player player, Move move, Set<Take> takes) {
         if (takes.contains(move)) {
-
             Take take = null;
             Iterator iter = takes.iterator();
             while (iter.hasNext()) {
@@ -236,12 +235,6 @@ public class Board {
             }
         }
         return true;
-    }
-
-    // Determines whether or not a piece is at the edge of the board
-    private boolean pieceAtEdge(Piece piece) {
-        Position pos = piece.getPosition();
-        return pos.getX() != 0 && pos.getX() != WIDTH-1;
     }
 
     // Returns the tile at a specified position

@@ -35,6 +35,7 @@ public class Game extends Application {
     ArrayList<Piece> pieces;
     private List<Piece> blackPieces;
     private List<Piece> redPieces;
+    private Set<Take> currentTakes;
 
     public Game() {
         board = new Board();
@@ -45,6 +46,7 @@ public class Game extends Application {
         pieces = new ArrayList<>();
         blackPieces = new ArrayList<>();
         redPieces = new ArrayList<>();
+        currentTakes = new HashSet<>();
     }
 
     public Pane createBoard() {
@@ -104,34 +106,31 @@ public class Game extends Application {
                         piece.getLayoutY()
                 );
 
-                Set<Take> takes;
-                if (currentPlayer.getSide().equals(Side.BOTTOM)) {
-                    takes = blackPieces.stream()
-                            .map(board::findForceTakes)
-                            .flatMap(Set::stream)
-                            .collect(Collectors.toSet());
-                } else {
-                    takes = redPieces.stream()
-                            .map(board::findForceTakes)
-                            .flatMap(Set::stream)
-                            .collect(Collectors.toSet());
-                }
+              // Set<Take> takes;
+              // if (currentPlayer.getSide().equals(Side.BOTTOM)) {
+              //     takes = blackPieces.stream()
+              //             .map(board::findForceTakes)
+              //             .flatMap(Set::stream)
+              //             .collect(Collectors.toSet());
+              // } else {
+              //     takes = redPieces.stream()
+              //             .map(board::findForceTakes)
+              //             .flatMap(Set::stream)
+              //             .collect(Collectors.toSet());
+              // }
 
+                System.out.println(currentTakes.size());
                 boolean completedMove = false;
-                if (!takes.isEmpty()) {
-                    Optional<Take> takeMade = board.attemptMove(currentPlayer, new Move(piece, newPos), takes);
+                if (!currentTakes.isEmpty()) {
+                    Optional<Take> takeMade = board.attemptMove(currentPlayer, new Move(piece, newPos), currentTakes);
                     if (takeMade.isPresent()) {
                         Piece victim = takeMade.get().getTarget();
                         if (currentPlayer.getColor() == PieceType.RED) {
-                            board.tileAt(victim.getPosition()).setPiece(null);
-                            redPieces.remove(victim);
-                            victim.setVisible(false);
-                            victim = null;
-                        } else {
-                            board.tileAt(victim.getPosition()).setPiece(null);
                             blackPieces.remove(victim);
                             victim.setVisible(false);
-                            victim = null;
+                        } else {
+                            redPieces.remove(victim);
+                            victim.setVisible(false);
                         }
                         completedMove = true;
                     }
@@ -141,25 +140,27 @@ public class Game extends Application {
 
                 if (completedMove) {
                     System.out.println("completed");
+                    currentTakes.forEach(this::unmarkForceTake);
+                    currentTakes = new HashSet<>();
                     endPlayerTurn(currentPlayer);
-                    takes.forEach(this::unmarkForceTake);
                 }
             });
         }));
     }
 
     private void endPlayerTurn(Player player) {
-        if (player.getSide().equals(player1.getSide())) {
+        if (player.getSide() == Side.BOTTOM) {
             System.out.println("Changing to player 2");
             currentPlayer = player2;
             System.out.println("Current player side: " + currentPlayer.getSide());
 
             redPieces.forEach((piece -> {
                 HashSet<Take> takes = board.findForceTakes(piece);
+                if (!takes.isEmpty()) {
+                    currentTakes.addAll(takes);
+                }
 
-                takes.forEach((take) -> {
-                    markForceTake(take);
-                });
+                currentTakes.forEach(this::markForceTake);
             }));
 
         } else {
@@ -169,19 +170,22 @@ public class Game extends Application {
             blackPieces.forEach((piece -> {
                 HashSet<Take> takes = board.findForceTakes(piece);
 
-                takes.forEach((take) -> {
-                    markForceTake(take);
-                });
+                if (!takes.isEmpty()) {
+                    currentTakes.addAll(takes);
+                }
+                currentTakes.forEach(this::markForceTake);
             }));
         }
     }
 
     private void markForceTake(Take take) {
+        System.out.println("Marking: " + take.toString());
         take.getPiece().setStroke(Color.BLUE);
         board.tileAt(take.getDest()).setFill(Color.RED);
     }
 
     private void unmarkForceTake(Take take) {
+        System.out.println("unmarking");
         Piece attacker = take.getPiece();
         attacker.setStroke(attacker.getDefaultStroke());
 

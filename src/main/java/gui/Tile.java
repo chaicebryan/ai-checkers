@@ -116,6 +116,6 @@ public class Tile extends Rectangle {
 
     @Override
     public String toString() {
-        return "Tile [" + posX + ", " + posY + ", " + surrounding.toString() + ", " + piece + "]";
+        return "Tile [" + posX + ", " + posY + ", " + surrounding.toString() + ", " + hasPiece() + ", " + piece + "]";
     }
 }
