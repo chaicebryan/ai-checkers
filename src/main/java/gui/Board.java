@@ -6,7 +6,9 @@ import static main.java.gui.Tile.TL;
 import static main.java.gui.Tile.TR;
 
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 
 import main.java.impl.Move;
@@ -53,26 +55,43 @@ public class Board {
         }
     }
 
-    public boolean attemptMove(Player player, Move move, Set<Take> takes) {
-
-        System.out.println(takes);
-        System.out.println(move);
+    public Optional<Take> attemptMove(Player player, Move move, Set<Take> takes) {
         if (takes.contains(move)) {
+
+            Take take = null;
+            Iterator iter = takes.iterator();
+            while (iter.hasNext()) {
+                take = (Take) iter.next();
+                if (take.equals(move)) {
+                    break;
+                }
+            }
             // Update tile content
             // Remove piece from old position
             this.tileAt(move.getDest()).setPiece(move.getPiece());
             this.removePieceAt(move.getPiece().getPosition());
-            System.out.println("bigman");
+
+            if (take != null) {
+                this.removePieceAt(take.getTarget().getPosition());
+            }
             // Move piece to new position
             move.getPiece().updatePositionTo(move.getDest());
+            this.tileAt(move.getDest()).setPiece(move.getPiece());
             move.getPiece().relocate(move.getDest().getX() * Piece.WIDTH, move.getDest().getY() * Piece.HEIGHT);
-            return true;
+            return Optional.of(take);
         } else {
             move.getPiece().relocate(move.getPiece().getPosition().getX() * Piece.WIDTH, move.getPiece().getPosition().getY() * Piece.HEIGHT);
-            return false;
+            return Optional.empty();
         }
     }
 
+    public void printContents() {
+        for (int i = 0; i < WIDTH; i++) {
+            for (int j = 0; j< HEIGHT; j++) {
+                System.out.println(state[i][j].toString());
+            }
+        }
+    }
 
     // Carries out a number of checks to determine if the attempted move is valid
     // It does this by considering the piece's current position and a specified new position
@@ -92,6 +111,7 @@ public class Board {
 
         // Can't move a piece to a tile that already contains a piece
         if (tileAlreadyOccupied(move.getDest())) {
+            System.out.println(true);
             return false;
         }
 

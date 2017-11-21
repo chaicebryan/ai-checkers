@@ -19,7 +19,6 @@ public class Tile extends Rectangle {
     public static String TR = "tr";
     public static String BL = "bl";
     public static String BR = "br";
-    public static String NONE = "NONE";
 
     private int posX;
     private int posY;
@@ -51,15 +50,15 @@ public class Tile extends Rectangle {
             surrounding.put(TR, null);
         }
 
-        if (posX!= 0 && posY!=HEIGHT-1) {
+        if (posX!= 0 && posY!=Board.HEIGHT-1) {
             surrounding.put(BL, new Position(posX-1, posY+1));
         } else {
             surrounding.put(BL, null);
         }
 
-        if (posX != WIDTH-1 && posY!=HEIGHT-1) {
+        if (posX != Board.WIDTH-1 && posY!=Board.HEIGHT-1) {
             surrounding.put(BR, new Position(posX+1, posY+1));
-        } {
+        } else {
             surrounding.put(BR, null);
         }
 
@@ -77,6 +76,10 @@ public class Tile extends Rectangle {
         } else {
             setFill(Paint.valueOf("#ffce9e"));
         }
+
+        setOnMousePressed((e) -> {
+            System.out.println(this.toString());
+        });
     }
 
     public int getPosX() {
@@ -109,5 +112,10 @@ public class Tile extends Rectangle {
 
     public HashMap<String, Position> getSurrounding() {
         return surrounding;
+    }
+
+    @Override
+    public String toString() {
+        return "Tile [" + posX + ", " + posY + ", " + surrounding.toString() + ", " + piece + "]";
     }
 }

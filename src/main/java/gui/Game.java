@@ -1,9 +1,9 @@
 package main.java.gui;
 
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Optional;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -17,6 +17,7 @@ import javafx.scene.layout.HBox;
 import javafx.scene.layout.Pane;
 import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
+import javafx.scene.paint.Paint;
 import javafx.scene.text.Text;
 import javafx.stage.Stage;
 import main.java.impl.Move;
@@ -27,7 +28,6 @@ import main.java.utils.GameUtils;
 public class Game extends Application {
 
     private Board board;
-    private Piece currentlySelected;
     private Player player1;
     private Player player2;
     private Player currentPlayer;
@@ -105,30 +105,44 @@ public class Game extends Application {
                 );
 
                 Set<Take> takes;
-                if (currentPlayer.getSide().equals(Side.TOP)) {
-                    takes = redPieces.stream()
-                            .map(board::findForceTakes)
-                            .flatMap(HashSet::stream)
-                            .collect(Collectors.toSet());
-                } else {
+                if (currentPlayer.getSide().equals(Side.BOTTOM)) {
                     takes = blackPieces.stream()
                             .map(board::findForceTakes)
-                            .flatMap(HashSet::stream)
+                            .flatMap(Set::stream)
+                            .collect(Collectors.toSet());
+                } else {
+                    takes = redPieces.stream()
+                            .map(board::findForceTakes)
+                            .flatMap(Set::stream)
                             .collect(Collectors.toSet());
                 }
 
-                boolean completedMove;
+                boolean completedMove = false;
                 if (!takes.isEmpty()) {
-                    completedMove = board.attemptMove(currentPlayer, new Move(piece, newPos), takes);
+                    Optional<Take> takeMade = board.attemptMove(currentPlayer, new Move(piece, newPos), takes);
+                    if (takeMade.isPresent()) {
+                        Piece victim = takeMade.get().getTarget();
+                        if (currentPlayer.getColor() == PieceType.RED) {
+                            board.tileAt(victim.getPosition()).setPiece(null);
+                            redPieces.remove(victim);
+                            victim.setVisible(false);
+                            victim = null;
+                        } else {
+                            board.tileAt(victim.getPosition()).setPiece(null);
+                            blackPieces.remove(victim);
+                            victim.setVisible(false);
+                            victim = null;
+                        }
+                        completedMove = true;
+                    }
                 } else {
                     completedMove = board.attemptMove(currentPlayer, new Move(piece, newPos));
                 }
 
-                // boolean completedMove = board.attemptMove(currentPlayer, new Move(piece, newPos));
-
                 if (completedMove) {
                     System.out.println("completed");
                     endPlayerTurn(currentPlayer);
+                    takes.forEach(this::unmarkForceTake);
                 }
             });
         }));
@@ -167,6 +181,13 @@ public class Game extends Application {
         board.tileAt(take.getDest()).setFill(Color.RED);
     }
 
+    private void unmarkForceTake(Take take) {
+        Piece attacker = take.getPiece();
+        attacker.setStroke(attacker.getDefaultStroke());
+
+        board.tileAt(take.getDest()).setFill(Paint.valueOf("#d18b47"));
+    }
+
     @Override
     public void start(Stage primaryStage) throws Exception{
 
@@ -191,6 +212,10 @@ public class Game extends Application {
         start.setPrefSize(100, 40);
         buttons.getChildren().addAll(restart, start);
 
+        Button testing = new Button("Show State");
+        testing.setPrefSize(100, 40);
+        testing.setOnAction((e) -> board.printContents());
+
         VBox sideMenu = new VBox();
         sideMenu.setMinWidth(200);
         //sideMenu.setStyle("-fx-background-color: #000;");
@@ -202,6 +227,7 @@ public class Game extends Application {
         sideMenu.getChildren().add(difficultyLabel);
         sideMenu.getChildren().add(difficulty);
         sideMenu.getChildren().add(buttons);
+        sideMenu.getChildren().add(testing);
 
         BorderPane borderPane = new BorderPane();
         borderPane.setLeft(sideMenu);

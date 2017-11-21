@@ -37,6 +37,9 @@ public class Piece extends Circle implements Comparable<Piece> {
     // The side fo the board that this piece started from
     private Side side;
 
+    private Color defaultStroke;
+
+
     public Piece(double posX, double posY, PieceType pieceType, Side side) {
         super(posX, posY, 0.7*35.0);
         selected = false;
@@ -58,35 +61,17 @@ public class Piece extends Circle implements Comparable<Piece> {
         if (pieceType.equals(PieceType.BLACK)) {
             setFill(Paint.valueOf("#000"));
             setStroke(Color.WHITE);
+            defaultStroke = Color.WHITE;
         } else {
             setFill(Paint.valueOf("#c40003"));
             setStroke(Paint.valueOf("#000"));
+            defaultStroke = Color.BLACK;
         }
 
         // Enable click and drag for the piece
         setOnMouseDragged((e) -> {
             relocate(e.getSceneX() - 240.0 - 35.0, e.getSceneY() - 35.0);
         });
-    }
-
-    // Highlight piece on the UI, representing that it is currently selected
-    public void select() {
-        selected = true;
-        setStroke(Color.YELLOW);
-        setStrokeWidth(5);
-    }
-
-    // Remove highlighting and deselect
-    public void deselect() {
-        if (pieceType == PieceType.BLACK) {
-            selected = false;
-            setStroke(Color.WHITE);
-            setStrokeWidth(1);
-        } else {
-            selected = false;
-            setStroke(Color.BLACK);
-            setStrokeWidth(1);
-        }
     }
 
     // Add nearby piece to list of nearby pieces
@@ -143,8 +128,17 @@ public class Piece extends Circle implements Comparable<Piece> {
         return side;
     }
 
+    public Paint getDefaultStroke() {
+        return defaultStroke;
+    }
+
     @Override
     public int compareTo(Piece o) {
         return 0;
+    }
+
+    @Override
+    public String toString() {
+        return "[" + boardPosition.getX() + ", " + boardPosition.getY() + " ," + pieceType.toString() + " ," + side.toString() + "]" ;
     }
 }
