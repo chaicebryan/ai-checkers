@@ -117,26 +117,26 @@ public class Board {
             if (side == Side.BOTTOM) {
                 if (surroundingTiles.get(TL) != null && tileAt(surroundingTiles.get(TL)).hasPiece()) {
                     Piece potentialOpponent = tileAt(surroundingTiles.get(TL)).getPiece();
-                    if (potentialOpponent.getSide() != side && !tileAt(tileAt(potentialOpponent.getPosition()).getSurrounding().get(TL)).hasPiece()) {
+                    if (potentialOpponent.getSide() != side && tileAt(potentialOpponent.getPosition()).getSurrounding().get(TL) != null && !tileAt(tileAt(potentialOpponent.getPosition()).getSurrounding().get(TL)).hasPiece()) {
                         takes.add(new Take(piece, tileAt(potentialOpponent.getPosition()).getSurrounding().get(TL), potentialOpponent));
                     }
                 }
                 if (surroundingTiles.get(TR) != null && tileAt(surroundingTiles.get(TR)).hasPiece()) {
                     Piece potentialOpponent = tileAt(surroundingTiles.get(TR)).getPiece();
-                    if (potentialOpponent.getSide() != side && !tileAt(tileAt(potentialOpponent.getPosition()).getSurrounding().get(TR)).hasPiece()) {
+                    if (potentialOpponent.getSide() != side && tileAt(potentialOpponent.getPosition()).getSurrounding().get(TR) != null &&!tileAt(tileAt(potentialOpponent.getPosition()).getSurrounding().get(TR)).hasPiece()) {
                         takes.add(new Take(piece, tileAt(potentialOpponent.getPosition()).getSurrounding().get(TR), potentialOpponent));
                     }
                 }
             } else {
                 if (surroundingTiles.get(BL) != null && tileAt(surroundingTiles.get(BL)).hasPiece()) {
                     Piece potentialOpponent = tileAt(surroundingTiles.get(BL)).getPiece();
-                    if (potentialOpponent.getSide() != side && !tileAt(tileAt(potentialOpponent.getPosition()).getSurrounding().get(BL)).hasPiece()) {
+                    if (potentialOpponent.getSide() != side && tileAt(potentialOpponent.getPosition()).getSurrounding().get(BL) != null &&!tileAt(tileAt(potentialOpponent.getPosition()).getSurrounding().get(BL)).hasPiece()) {
                         takes.add(new Take(piece, tileAt(potentialOpponent.getPosition()).getSurrounding().get(BL), potentialOpponent));
                     }
                 }
                 if (surroundingTiles.get(BR) != null && tileAt(surroundingTiles.get(BR)).hasPiece()) {
                     Piece potentialOpponent = tileAt(surroundingTiles.get(BR)).getPiece();
-                    if (potentialOpponent.getSide() != side && !tileAt(tileAt(potentialOpponent.getPosition()).getSurrounding().get(BR)).hasPiece()) {
+                    if (potentialOpponent.getSide() != side && tileAt(potentialOpponent.getPosition()).getSurrounding().get(BR) != null &&!tileAt(tileAt(potentialOpponent.getPosition()).getSurrounding().get(BR)).hasPiece()) {
                         takes.add(new Take(piece, tileAt(potentialOpponent.getPosition()).getSurrounding().get(BR), potentialOpponent));
                     }
                 }
@@ -144,25 +144,25 @@ public class Board {
         } else {
             if (surroundingTiles.get(TL) != null && tileAt(surroundingTiles.get(TL)).hasPiece()) {
                 Piece potentialOpponent = tileAt(surroundingTiles.get(TL)).getPiece();
-                if (potentialOpponent.getSide() != side && !tileAt(tileAt(potentialOpponent.getPosition()).getSurrounding().get(TL)).hasPiece()) {
+                if (potentialOpponent.getSide() != side && tileAt(potentialOpponent.getPosition()).getSurrounding().get(TL) != null &&!tileAt(tileAt(potentialOpponent.getPosition()).getSurrounding().get(TL)).hasPiece()) {
                     takes.add(new Take(piece, tileAt(potentialOpponent.getPosition()).getSurrounding().get(TL), potentialOpponent));
                 }
             }
             if (surroundingTiles.get(TR) != null && tileAt(surroundingTiles.get(TR)).hasPiece()) {
                 Piece potentialOpponent = tileAt(surroundingTiles.get(TR)).getPiece();
-                if (potentialOpponent.getSide() != side && !tileAt(tileAt(potentialOpponent.getPosition()).getSurrounding().get(TR)).hasPiece()) {
+                if (potentialOpponent.getSide() != side && tileAt(potentialOpponent.getPosition()).getSurrounding().get(TR) != null &&!tileAt(tileAt(potentialOpponent.getPosition()).getSurrounding().get(TR)).hasPiece()) {
                     takes.add(new Take(piece, tileAt(potentialOpponent.getPosition()).getSurrounding().get(TR), potentialOpponent));
                 }
             }
             if (surroundingTiles.get(BL) != null && tileAt(surroundingTiles.get(BL)).hasPiece()) {
                 Piece potentialOpponent = tileAt(surroundingTiles.get(BL)).getPiece();
-                if (potentialOpponent.getSide() != side && !tileAt(tileAt(potentialOpponent.getPosition()).getSurrounding().get(BL)).hasPiece()) {
+                if (potentialOpponent.getSide() != side && tileAt(potentialOpponent.getPosition()).getSurrounding().get(BL) != null &&!tileAt(tileAt(potentialOpponent.getPosition()).getSurrounding().get(BL)).hasPiece()) {
                     takes.add(new Take(piece, tileAt(potentialOpponent.getPosition()).getSurrounding().get(BL), potentialOpponent));
                 }
             }
             if (surroundingTiles.get(BR) != null && tileAt(surroundingTiles.get(BR)).hasPiece()) {
                 Piece potentialOpponent = tileAt(surroundingTiles.get(BR)).getPiece();
-                if (potentialOpponent.getSide() != side && !tileAt(tileAt(potentialOpponent.getPosition()).getSurrounding().get(BR)).hasPiece()) {
+                if (potentialOpponent.getSide() != side && tileAt(potentialOpponent.getPosition()).getSurrounding().get(BR) != null &&!tileAt(tileAt(potentialOpponent.getPosition()).getSurrounding().get(BR)).hasPiece()) {
                     takes.add(new Take(piece, tileAt(potentialOpponent.getPosition()).getSurrounding().get(BR), potentialOpponent));
                 }
             }
