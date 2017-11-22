@@ -5,7 +5,6 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 import java.util.Set;
-import java.util.stream.Collectors;
 
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -31,11 +30,10 @@ public class Game extends Application {
     private Player player1;
     private Player player2;
     private Player currentPlayer;
-
-    ArrayList<Piece> pieces;
+    private ArrayList<Piece> pieces;
     private List<Piece> blackPieces;
     private List<Piece> redPieces;
-    private Set<Take> currentTakes;
+    private Set<Take> availableTakes;
 
     public Game() {
         board = new Board();
@@ -46,7 +44,7 @@ public class Game extends Application {
         pieces = new ArrayList<>();
         blackPieces = new ArrayList<>();
         redPieces = new ArrayList<>();
-        currentTakes = new HashSet<>();
+        availableTakes = new HashSet<>();
     }
 
     public Pane createBoard() {
@@ -99,6 +97,7 @@ public class Game extends Application {
     }
 
     private void setUpPieceLogic() {
+
         pieces.forEach((piece -> {
             piece.setOnMouseReleased((event) -> {
                 Position newPos = GameUtils.getInstance().convertToBoardPosition(
@@ -106,23 +105,9 @@ public class Game extends Application {
                         piece.getLayoutY()
                 );
 
-              // Set<Take> takes;
-              // if (currentPlayer.getSide().equals(Side.BOTTOM)) {
-              //     takes = blackPieces.stream()
-              //             .map(board::findForceTakes)
-              //             .flatMap(Set::stream)
-              //             .collect(Collectors.toSet());
-              // } else {
-              //     takes = redPieces.stream()
-              //             .map(board::findForceTakes)
-              //             .flatMap(Set::stream)
-              //             .collect(Collectors.toSet());
-              // }
-
-                System.out.println(currentTakes.size());
-                boolean completedMove = false;
-                if (!currentTakes.isEmpty()) {
-                    Optional<Take> takeMade = board.attemptMove(currentPlayer, new Move(piece, newPos), currentTakes);
+                boolean moveCompleted = false;
+                if (!availableTakes.isEmpty()) {
+                    Optional<Take> takeMade = board.attemptMove(currentPlayer, new Move(piece, newPos), availableTakes);
                     if (takeMade.isPresent()) {
                         Piece victim = takeMade.get().getTarget();
                         if (currentPlayer.getColor() == PieceType.RED) {
@@ -132,16 +117,16 @@ public class Game extends Application {
                             redPieces.remove(victim);
                             victim.setVisible(false);
                         }
-                        completedMove = true;
+                        moveCompleted = true;
                     }
                 } else {
-                    completedMove = board.attemptMove(currentPlayer, new Move(piece, newPos));
+                    moveCompleted = board.attemptMove(currentPlayer, new Move(piece, newPos));
                 }
 
-                if (completedMove) {
+                if (moveCompleted) {
                     System.out.println("completed");
-                    currentTakes.forEach(this::unmarkForceTake);
-                    currentTakes = new HashSet<>();
+                    availableTakes.forEach(this::unmarkForceTake);
+                    availableTakes = new HashSet<>();
                     endPlayerTurn(currentPlayer);
                 }
             });
@@ -150,30 +135,28 @@ public class Game extends Application {
 
     private void endPlayerTurn(Player player) {
         if (player.getSide() == Side.BOTTOM) {
-            System.out.println("Changing to player 2");
             currentPlayer = player2;
-            System.out.println("Current player side: " + currentPlayer.getSide());
+            System.out.println("Changed to player: " + currentPlayer.getSide());
 
             redPieces.forEach((piece -> {
                 HashSet<Take> takes = board.findForceTakes(piece);
                 if (!takes.isEmpty()) {
-                    currentTakes.addAll(takes);
+                    availableTakes.addAll(takes);
                 }
 
-                currentTakes.forEach(this::markForceTake);
+                availableTakes.forEach(this::markForceTake);
             }));
 
         } else {
-            System.out.println("Changing to player 1");
             currentPlayer = player1;
-            System.out.println("Current player side: " + currentPlayer.getSide());
+            System.out.println("Changed to player: " + currentPlayer.getSide());
             blackPieces.forEach((piece -> {
                 HashSet<Take> takes = board.findForceTakes(piece);
 
                 if (!takes.isEmpty()) {
-                    currentTakes.addAll(takes);
+                    availableTakes.addAll(takes);
                 }
-                currentTakes.forEach(this::markForceTake);
+                availableTakes.forEach(this::markForceTake);
             }));
         }
     }
@@ -188,14 +171,30 @@ public class Game extends Application {
         System.out.println("unmarking");
         Piece attacker = take.getPiece();
         attacker.setStroke(attacker.getDefaultStroke());
-
         board.tileAt(take.getDest()).setFill(Paint.valueOf("#d18b47"));
     }
 
     @Override
     public void start(Stage primaryStage) throws Exception{
+        BorderPane borderPane = new BorderPane();
+        borderPane.setLeft(createSideMenu());
+        borderPane.setCenter(createBoard());
 
+        primaryStage.setTitle("AI Checkers");
 
+        Scene scene = new Scene(borderPane);
+        scene.getStylesheets().add(Game.class.getResource("/side-menu.css")
+                        .toExternalForm()
+        );
+
+        primaryStage.setScene(scene);
+        primaryStage.setMinHeight(Board.HEIGHT * Tile.HEIGHT + 30);
+        primaryStage.setMaxWidth(Board.WIDTH * Tile.WIDTH + 240);
+        primaryStage.setMinWidth(Board.WIDTH * Tile.WIDTH + 240);
+        primaryStage.show();
+    }
+
+    private VBox createSideMenu() {
         Text header = new Text("Checkers");
         header.setId("header");
 
@@ -207,7 +206,6 @@ public class Game extends Application {
         difficulty.setBlockIncrement(1);
         difficulty.setMajorTickUnit(1);
         difficulty.setSnapToTicks(true);
-
 
         HBox buttons = new HBox();
         Button restart = new Button("restart");
@@ -233,22 +231,7 @@ public class Game extends Application {
         sideMenu.getChildren().add(buttons);
         sideMenu.getChildren().add(testing);
 
-        BorderPane borderPane = new BorderPane();
-        borderPane.setLeft(sideMenu);
-        borderPane.setCenter(createBoard());
-
-        primaryStage.setTitle("AI Checkers");
-
-        Scene scene = new Scene(borderPane);
-        scene.getStylesheets().add(Game.class.getResource("/side-menu.css")
-                        .toExternalForm()
-        );
-
-        primaryStage.setScene(scene);
-        primaryStage.setMinHeight(Board.HEIGHT * Tile.HEIGHT + 30);
-        primaryStage.setMaxWidth(Board.WIDTH * Tile.WIDTH + 240);
-        primaryStage.setMinWidth(Board.WIDTH * Tile.WIDTH + 240);
-        primaryStage.show();
+        return sideMenu;
     }
 
 

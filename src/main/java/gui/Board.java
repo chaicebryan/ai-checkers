@@ -5,6 +5,7 @@ import static main.java.gui.Tile.BR;
 import static main.java.gui.Tile.TL;
 import static main.java.gui.Tile.TR;
 
+import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.Map;
@@ -126,67 +127,58 @@ public class Board {
     public HashSet<Take> findForceTakes(Piece piece) {
         Tile currentTile = tileAt(piece.getPosition());
         Map<String, Position> surroundingTiles = currentTile.getSurrounding();
-
         Side side = piece.getSide();
         boolean isKing = piece.isKing();
-
         HashSet<Take> takes = new HashSet<>();
 
         if (!isKing) {
             if (side == Side.BOTTOM) {
-                if (surroundingTiles.get(TL) != null && tileAt(surroundingTiles.get(TL)).hasPiece()) {
-                    Piece potentialOpponent = tileAt(surroundingTiles.get(TL)).getPiece();
-                    if (potentialOpponent.getSide() != side && tileAt(potentialOpponent.getPosition()).getSurrounding().get(TL) != null && !tileAt(tileAt(potentialOpponent.getPosition()).getSurrounding().get(TL)).hasPiece()) {
-                        takes.add(new Take(piece, tileAt(potentialOpponent.getPosition()).getSurrounding().get(TL), potentialOpponent));
-                    }
+                if (potentialTake(surroundingTiles, TL)) {
+                    getTakeIfAny(piece, surroundingTiles, TL).ifPresent(takes::add);
                 }
-                if (surroundingTiles.get(TR) != null && tileAt(surroundingTiles.get(TR)).hasPiece()) {
-                    Piece potentialOpponent = tileAt(surroundingTiles.get(TR)).getPiece();
-                    if (potentialOpponent.getSide() != side && tileAt(potentialOpponent.getPosition()).getSurrounding().get(TR) != null &&!tileAt(tileAt(potentialOpponent.getPosition()).getSurrounding().get(TR)).hasPiece()) {
-                        takes.add(new Take(piece, tileAt(potentialOpponent.getPosition()).getSurrounding().get(TR), potentialOpponent));
-                    }
+                if (potentialTake(surroundingTiles, TR)) {
+                    getTakeIfAny(piece, surroundingTiles, TR).ifPresent(takes::add);
                 }
             } else {
-                if (surroundingTiles.get(BL) != null && tileAt(surroundingTiles.get(BL)).hasPiece()) {
-                    Piece potentialOpponent = tileAt(surroundingTiles.get(BL)).getPiece();
-                    if (potentialOpponent.getSide() != side && tileAt(potentialOpponent.getPosition()).getSurrounding().get(BL) != null &&!tileAt(tileAt(potentialOpponent.getPosition()).getSurrounding().get(BL)).hasPiece()) {
-                        takes.add(new Take(piece, tileAt(potentialOpponent.getPosition()).getSurrounding().get(BL), potentialOpponent));
-                    }
+                if (potentialTake(surroundingTiles, BL)) {
+                    getTakeIfAny(piece, surroundingTiles, BL).ifPresent(takes::add);
                 }
-                if (surroundingTiles.get(BR) != null && tileAt(surroundingTiles.get(BR)).hasPiece()) {
-                    Piece potentialOpponent = tileAt(surroundingTiles.get(BR)).getPiece();
-                    if (potentialOpponent.getSide() != side && tileAt(potentialOpponent.getPosition()).getSurrounding().get(BR) != null &&!tileAt(tileAt(potentialOpponent.getPosition()).getSurrounding().get(BR)).hasPiece()) {
-                        takes.add(new Take(piece, tileAt(potentialOpponent.getPosition()).getSurrounding().get(BR), potentialOpponent));
-                    }
+                if (potentialTake(surroundingTiles, BR)) {
+                    getTakeIfAny(piece, surroundingTiles, BR).ifPresent(takes::add);
                 }
             }
         } else {
-            if (surroundingTiles.get(TL) != null && tileAt(surroundingTiles.get(TL)).hasPiece()) {
-                Piece potentialOpponent = tileAt(surroundingTiles.get(TL)).getPiece();
-                if (potentialOpponent.getSide() != side && tileAt(potentialOpponent.getPosition()).getSurrounding().get(TL) != null &&!tileAt(tileAt(potentialOpponent.getPosition()).getSurrounding().get(TL)).hasPiece()) {
-                    takes.add(new Take(piece, tileAt(potentialOpponent.getPosition()).getSurrounding().get(TL), potentialOpponent));
-                }
+            if (potentialTake(surroundingTiles, TL)) {
+                getTakeIfAny(piece, surroundingTiles, TL).ifPresent(takes::add);
             }
-            if (surroundingTiles.get(TR) != null && tileAt(surroundingTiles.get(TR)).hasPiece()) {
-                Piece potentialOpponent = tileAt(surroundingTiles.get(TR)).getPiece();
-                if (potentialOpponent.getSide() != side && tileAt(potentialOpponent.getPosition()).getSurrounding().get(TR) != null &&!tileAt(tileAt(potentialOpponent.getPosition()).getSurrounding().get(TR)).hasPiece()) {
-                    takes.add(new Take(piece, tileAt(potentialOpponent.getPosition()).getSurrounding().get(TR), potentialOpponent));
-                }
+            if (potentialTake(surroundingTiles, TR)) {
+                getTakeIfAny(piece, surroundingTiles, TR).ifPresent(takes::add);
             }
-            if (surroundingTiles.get(BL) != null && tileAt(surroundingTiles.get(BL)).hasPiece()) {
-                Piece potentialOpponent = tileAt(surroundingTiles.get(BL)).getPiece();
-                if (potentialOpponent.getSide() != side && tileAt(potentialOpponent.getPosition()).getSurrounding().get(BL) != null &&!tileAt(tileAt(potentialOpponent.getPosition()).getSurrounding().get(BL)).hasPiece()) {
-                    takes.add(new Take(piece, tileAt(potentialOpponent.getPosition()).getSurrounding().get(BL), potentialOpponent));
-                }
+            if (potentialTake(surroundingTiles, BL)) {
+                getTakeIfAny(piece, surroundingTiles, BL).ifPresent(takes::add);
             }
-            if (surroundingTiles.get(BR) != null && tileAt(surroundingTiles.get(BR)).hasPiece()) {
-                Piece potentialOpponent = tileAt(surroundingTiles.get(BR)).getPiece();
-                if (potentialOpponent.getSide() != side && tileAt(potentialOpponent.getPosition()).getSurrounding().get(BR) != null &&!tileAt(tileAt(potentialOpponent.getPosition()).getSurrounding().get(BR)).hasPiece()) {
-                    takes.add(new Take(piece, tileAt(potentialOpponent.getPosition()).getSurrounding().get(BR), potentialOpponent));
-                }
+            if (potentialTake(surroundingTiles, BR)) {
+                getTakeIfAny(piece, surroundingTiles, BR).ifPresent(takes::add);
             }
         }
         return takes;
+    }
+
+    private Optional<Take> getTakeIfAny(Piece piece, Map<String, Position> surrounding, String nearby) {
+        Piece potentialOpponent = tileAt(surrounding.get(nearby)).getPiece();
+        if (potentialOpponent.getSide() != piece.getSide() && pieceIsVulnarable(potentialOpponent, nearby)) {
+            return Optional.of(new Take(piece, tileAt(potentialOpponent.getPosition()).getSurrounding().get(nearby), potentialOpponent));
+        }
+        return Optional.empty();
+    }
+
+    private boolean potentialTake(Map<String, Position> surrounding, String nearBy) {
+        return surrounding.get(nearBy) != null && tileAt(surrounding.get(nearBy)).hasPiece();
+    }
+
+    private boolean pieceIsVulnarable(Piece potentialOpponent, String near) {
+        return tileAt(potentialOpponent.getPosition()).getSurrounding().get(near) != null &&
+                !tileAt(tileAt(potentialOpponent.getPosition()).getSurrounding().get(near)).hasPiece();
     }
 
     // Stops pieces from moving off of the board

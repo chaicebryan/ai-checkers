@@ -13,14 +13,11 @@ import main.java.impl.Position;
 // Piece represents a piece that exists within a tile on the board.
 // It has an x. y position
 // It has some metadata (WIDTH and HEIGHT in pixels) to enable drawing to a screen
-public class Piece extends Circle implements Comparable<Piece> {
+public class Piece extends Circle {
 
     // Width and height in pixels
     public static int WIDTH = 70;
     public static int HEIGHT = 70;
-
-    // Is the piece the currently selected piece
-    private boolean selected;
 
     // The colour of the piece
     private PieceType pieceType;
@@ -40,12 +37,12 @@ public class Piece extends Circle implements Comparable<Piece> {
     // The side fo the board that this piece started from
     private Side side;
 
+    // Used to reset pieces to default colour
     private Color defaultStroke;
 
 
     public Piece(double posX, double posY, PieceType pieceType, Side side) {
         super(posX, posY, 0.7*35.0);
-        selected = false;
         boardPosition = new Position((int)posX, (int)posY);
         this.pieceType = pieceType;
         isKing = false;
@@ -81,30 +78,6 @@ public class Piece extends Circle implements Comparable<Piece> {
         });
     }
 
-    // Add nearby piece to list of nearby pieces
-    public void addNearbyPiece(Piece other) {
-        nearbyPieces.add(other);
-        other.getNearbyPieces().add(this);
-    }
-
-    // Add nearby opponent to list of nearby opponents
-    public void addNearbyOpponent(Piece opponent) {
-        nearbyOpponents.add(opponent);
-        opponent.getNearbyPieces().add(this);
-    }
-
-    // remove piece from nearby pieces
-    public void removeNearbyPiece(Piece other) {
-        nearbyPieces.remove(other);
-        other.getNearbyPieces().remove(this);
-    }
-
-    // remove opponent from nearby opponents
-    public void removeNearbyOpponents(Piece opponent) {
-        nearbyOpponents.remove(opponent);
-        opponent.getNearbyPieces().remove(this);
-    }
-
     // Change the position of this piece to a new specified position
     public void updatePositionTo(Position newPos) {
         if ((side == Side.BOTTOM && newPos.getY() == 0) || (side == Side.TOP && newPos.getY() == Board.HEIGHT-1)) {
@@ -117,7 +90,6 @@ public class Piece extends Circle implements Comparable<Piece> {
 
     // Make this piece a king
     public void makeKing() {
-
         this.isKing = true;
         Image image;
         if (pieceType == PieceType.RED) {
@@ -138,25 +110,12 @@ public class Piece extends Circle implements Comparable<Piece> {
         return isKing;
     }
 
-    public HashSet<Piece> getNearbyPieces() {
-        return nearbyPieces;
-    }
-
-    public HashSet<Piece> getNearbyOpponents() {
-        return nearbyOpponents;
-    }
-
     public Side getSide() {
         return side;
     }
 
     public Paint getDefaultStroke() {
         return defaultStroke;
-    }
-
-    @Override
-    public int compareTo(Piece o) {
-        return 0;
     }
 
     @Override

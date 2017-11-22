@@ -1,0 +1,20 @@
+TODO
+
+* Refactor this horrible code
+
+* create two player logic
+    * Make it clean and maintainable
+
+* Convert to king if taking a king
+
+* Make sure king moves are working as expected
+
+* If a piece can take again then it must
+
+* Restart should refresh the board with the current settings
+
+* Display rules of the game
+
+* Show possible moves two human player
+
+* Make a minimax AI
