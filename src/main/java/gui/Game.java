@@ -33,7 +33,7 @@ public class Game extends Application {
     private ArrayList<Piece> pieces;
     private List<Piece> blackPieces;
     private List<Piece> redPieces;
-    private Set<Take> availableTakes;
+    private List<Take> availableTakes;
 
     public Game() {
         board = new Board();
@@ -44,7 +44,7 @@ public class Game extends Application {
         pieces = new ArrayList<>();
         blackPieces = new ArrayList<>();
         redPieces = new ArrayList<>();
-        availableTakes = new HashSet<>();
+        availableTakes = new ArrayList<>();
     }
 
     public Pane createBoard() {
@@ -107,7 +107,7 @@ public class Game extends Application {
 
                 boolean moveCompleted = false;
                 if (!availableTakes.isEmpty()) {
-                    Optional<Take> takeMade = board.attemptMove(currentPlayer, new Move(piece, newPos), availableTakes);
+                    Optional<Take> takeMade = board.attemptMove(new Move(piece, newPos), availableTakes);
                     if (takeMade.isPresent()) {
                         Piece victim = takeMade.get().getTarget();
                         if (currentPlayer.getColor() == PieceType.RED) {
@@ -126,7 +126,7 @@ public class Game extends Application {
                 if (moveCompleted) {
                     System.out.println("completed");
                     availableTakes.forEach(this::unmarkForceTake);
-                    availableTakes = new HashSet<>();
+                    availableTakes = new ArrayList<>();
                     endPlayerTurn(currentPlayer);
                 }
             });
@@ -139,7 +139,7 @@ public class Game extends Application {
             System.out.println("Changed to player: " + currentPlayer.getSide());
 
             redPieces.forEach((piece -> {
-                HashSet<Take> takes = board.findForceTakes(piece);
+                ArrayList<Take> takes = board.findForceTakes(piece);
                 if (!takes.isEmpty()) {
                     availableTakes.addAll(takes);
                 }
@@ -151,7 +151,7 @@ public class Game extends Application {
             currentPlayer = player1;
             System.out.println("Changed to player: " + currentPlayer.getSide());
             blackPieces.forEach((piece -> {
-                HashSet<Take> takes = board.findForceTakes(piece);
+                ArrayList<Take> takes = board.findForceTakes(piece);
 
                 if (!takes.isEmpty()) {
                     availableTakes.addAll(takes);

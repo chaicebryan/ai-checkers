@@ -5,9 +5,11 @@ import static main.java.gui.Tile.BR;
 import static main.java.gui.Tile.TL;
 import static main.java.gui.Tile.TR;
 
+import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 import java.util.Set;
@@ -56,16 +58,10 @@ public class Board {
         }
     }
 
-    public Optional<Take> attemptMove(Player player, Move move, Set<Take> takes) {
+    public Optional<Take> attemptMove(Move move, List<Take> takes) {
         if (takes.contains(move)) {
-            Take take = null;
-            Iterator iter = takes.iterator();
-            while (iter.hasNext()) {
-                take = (Take) iter.next();
-                if (take.equals(move)) {
-                    break;
-                }
-            }
+
+            Take take = takes.get(takes.indexOf(move));
             // Update tile content
             // Remove piece from old position
             this.tileAt(move.getDest()).setPiece(move.getPiece());
@@ -124,12 +120,12 @@ public class Board {
         return true;
     }
 
-    public HashSet<Take> findForceTakes(Piece piece) {
+    public ArrayList<Take> findForceTakes(Piece piece) {
         Tile currentTile = tileAt(piece.getPosition());
         Map<String, Position> surroundingTiles = currentTile.getSurrounding();
         Side side = piece.getSide();
         boolean isKing = piece.isKing();
-        HashSet<Take> takes = new HashSet<>();
+        ArrayList<Take> takes = new ArrayList<>();
 
         if (!isKing) {
             if (side == Side.BOTTOM) {
