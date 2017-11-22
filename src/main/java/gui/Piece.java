@@ -66,7 +66,7 @@ public class Piece extends Circle implements Comparable<Piece> {
             setStroke(Color.WHITE);
             defaultStroke = Color.WHITE;
         } else {
-            setFill(Paint.valueOf("#c40003"));
+            setFill(Paint.valueOf("#FF0000"));
             setStroke(Paint.valueOf("#000"));
             defaultStroke = Color.BLACK;
         }
@@ -78,7 +78,6 @@ public class Piece extends Circle implements Comparable<Piece> {
 
         setOnMousePressed((e) -> {
           System.out.println(this.toString());
-          this.makeKing();
         });
     }
 
@@ -108,17 +107,26 @@ public class Piece extends Circle implements Comparable<Piece> {
 
     // Change the position of this piece to a new specified position
     public void updatePositionTo(Position newPos) {
-        boardPosition.changeTo(newPos.getX(), newPos.getY());
+        if ((side == Side.BOTTOM && newPos.getY() == 0) || (side == Side.TOP && newPos.getY() == Board.HEIGHT-1)) {
+            this.makeKing();
+            boardPosition.changeTo(newPos.getX(), newPos.getY());
+        } else {
+            boardPosition.changeTo(newPos.getX(), newPos.getY());
+        }
     }
 
     // Make this piece a king
     public void makeKing() {
-        this.isKing = true;
 
-        Image image = new Image("redking.png");
+        this.isKing = true;
+        Image image;
+        if (pieceType == PieceType.RED) {
+             image = new Image("redking.png");
+        } else {
+            image = new Image("blackking.png");
+        }
 
         ImagePattern imv = new ImagePattern(image);
-
         this.setFill(imv);
     }
 
