@@ -1,10 +1,8 @@
 package main.java.gui;
 
 import java.util.ArrayList;
-import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
-import java.util.Set;
 
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -66,6 +64,12 @@ public class Game extends Application {
                 }
         }
 
+        setUpPieces(pane);
+
+        return pane;
+    }
+
+    private void setUpPieces(Pane pane) {
         for (int y = 0; y < Board.HEIGHT; y++) {
             for (int x = 0; x < Board.WIDTH; x++) {
 
@@ -90,10 +94,7 @@ public class Game extends Application {
 
         pieces.addAll(blackPieces);
         pieces.addAll(redPieces);
-
         setUpPieceLogic();
-
-        return pane;
     }
 
     private void setUpPieceLogic() {
@@ -139,6 +140,7 @@ public class Game extends Application {
             System.out.println("Changed to player: " + currentPlayer.getSide());
 
             redPieces.forEach((piece -> {
+
                 ArrayList<Take> takes = board.findForceTakes(piece);
                 if (!takes.isEmpty()) {
                     availableTakes.addAll(takes);
@@ -146,13 +148,13 @@ public class Game extends Application {
 
                 availableTakes.forEach(this::markForceTake);
             }));
-
         } else {
             currentPlayer = player1;
             System.out.println("Changed to player: " + currentPlayer.getSide());
-            blackPieces.forEach((piece -> {
-                ArrayList<Take> takes = board.findForceTakes(piece);
 
+            blackPieces.forEach((piece -> {
+
+                ArrayList<Take> takes = board.findForceTakes(piece);
                 if (!takes.isEmpty()) {
                     availableTakes.addAll(takes);
                 }
@@ -220,7 +222,6 @@ public class Game extends Application {
 
         VBox sideMenu = new VBox();
         sideMenu.setMinWidth(200);
-        //sideMenu.setStyle("-fx-background-color: #000;");
         sideMenu.getStyleClass().add("hbox");
         sideMenu.setId("side-menu");
         sideMenu.setPadding(new Insets(20, 20, 20, 20));
