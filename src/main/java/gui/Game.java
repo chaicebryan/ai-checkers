@@ -113,6 +113,9 @@ public class Game extends Application {
                     Optional<Take> takeMade = board.attemptMove(new Move(piece, newPos), availableTakes);
                     if (takeMade.isPresent()) {
                         Piece victim = takeMade.get().getTarget();
+                        if (victim.isKing()) {
+                            takeMade.get().getPiece().makeKing();
+                        }
                         if (currentPlayer.getColor() == PieceType.RED) {
                             blackPieces.remove(victim);
                             victim.setVisible(false);
