@@ -31,6 +31,7 @@ public class Game extends Application {
     private ArrayList<Piece> pieces;
     private List<Piece> blackPieces;
     private List<Piece> redPieces;
+    private List<Move> availableMoves;
     private List<Take> availableTakes;
 
     public Game() {
@@ -42,6 +43,7 @@ public class Game extends Application {
         pieces = new ArrayList<>();
         blackPieces = new ArrayList<>();
         redPieces = new ArrayList<>();
+        availableMoves = new ArrayList<>();
         availableTakes = new ArrayList<>();
     }
 
@@ -126,8 +128,10 @@ public class Game extends Application {
 
                 if (moveCompleted) {
                     System.out.println("completed");
-                    availableTakes.forEach(this::unmarkForceTake);
+                    this.unmarkForceTakes(availableTakes);
+                    this.unMarkValidMoves(availableMoves);
                     availableTakes = new ArrayList<>();
+                    availableMoves = new ArrayList<>();
                     endPlayerTurn(currentPlayer);
                 }
             });
@@ -139,41 +143,56 @@ public class Game extends Application {
             currentPlayer = player2;
             System.out.println("Changed to player: " + currentPlayer.getSide());
 
-            redPieces.forEach((piece -> {
-
-                ArrayList<Take> takes = board.findForceTakes(piece);
-                if (!takes.isEmpty()) {
-                    availableTakes.addAll(takes);
-                }
-
-                availableTakes.forEach(this::markForceTake);
-            }));
+            availableMoves = board.findValidMoves(currentPlayer, redPieces);
+            availableTakes = board.findForceTakes(redPieces);
+            if (availableTakes.isEmpty()) {
+                markValidMoves(availableMoves);
+            } {
+                markForceTakes(availableTakes);
+            }
         } else {
             currentPlayer = player1;
             System.out.println("Changed to player: " + currentPlayer.getSide());
-
-            blackPieces.forEach((piece -> {
-
-                ArrayList<Take> takes = board.findForceTakes(piece);
-                if (!takes.isEmpty()) {
-                    availableTakes.addAll(takes);
-                }
-                availableTakes.forEach(this::markForceTake);
-            }));
+            availableMoves = board.findValidMoves(currentPlayer, blackPieces);
+            availableTakes = board.findForceTakes(blackPieces);
+            if (availableTakes.isEmpty()) {
+                markValidMoves(availableMoves);
+            } {
+                markForceTakes(availableTakes);
+            }
         }
     }
 
-    private void markForceTake(Take take) {
-        System.out.println("Marking: " + take.toString());
-        take.getPiece().setStroke(Color.BLUE);
-        board.tileAt(take.getDest()).setFill(Color.RED);
+    private void markValidMoves(List<Move> moves) {
+        moves.forEach((move -> {
+            move.getPiece().setStroke(Color.BLUE);
+            board.tileAt(move.getDest()).setFill(Color.DARKBLUE);
+        }));
     }
 
-    private void unmarkForceTake(Take take) {
-        System.out.println("unmarking");
-        Piece attacker = take.getPiece();
-        attacker.setStroke(attacker.getDefaultStroke());
-        board.tileAt(take.getDest()).setFill(Paint.valueOf("#d18b47"));
+    private void unMarkValidMoves(List<Move> moves) {
+        moves.forEach((move -> {
+            move.getPiece().setStroke(move.getPiece().getDefaultStroke());
+            board.tileAt(move.getDest()).setFill(Paint.valueOf("#d18b47"));
+        }));
+
+    }
+
+    private void markForceTakes(List<Take> takes) {
+        takes.forEach((take -> {
+            System.out.println("Marking: " + take.toString());
+            take.getPiece().setStroke(Color.BLUE);
+            board.tileAt(take.getDest()).setFill(Color.RED);
+        }));
+    }
+
+    private void unmarkForceTakes(List<Take> takes) {
+        takes.forEach((take -> {
+            System.out.println("unmarking");
+            Piece attacker = take.getPiece();
+            attacker.setStroke(attacker.getDefaultStroke());
+            board.tileAt(take.getDest()).setFill(Paint.valueOf("#d18b47"));
+        }));
     }
 
     @Override

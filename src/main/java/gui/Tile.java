@@ -2,6 +2,7 @@ package main.java.gui;
 
 
 import java.util.HashMap;
+import java.util.Optional;
 
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
@@ -22,7 +23,7 @@ public class Tile extends Rectangle {
 
     private int posX;
     private int posY;
-    private HashMap<String, Position> surrounding;
+    private HashMap<String, Optional<Position>> surrounding;
 
     // Represents the colour of the tile
     private TileType type;
@@ -39,27 +40,27 @@ public class Tile extends Rectangle {
         surrounding = new HashMap<>();
 
         if (posX!=0 && posY!= 0) {
-            surrounding.put(TL, new Position(posX-1, posY-1));
+            surrounding.put(TL, Optional.of(new Position(posX-1, posY-1)));
         } else {
-            surrounding.put(TL, null);
+            surrounding.put(TL, Optional.empty());
         }
 
         if (posX!=Board.HEIGHT-1 && posY!=0) {
-            surrounding.put(TR, new Position(posX+1, posY-1));
+            surrounding.put(TR, Optional.of(new Position(posX+1, posY-1)));
         } else {
-            surrounding.put(TR, null);
+            surrounding.put(TR, Optional.empty());
         }
 
         if (posX!= 0 && posY!=Board.HEIGHT-1) {
-            surrounding.put(BL, new Position(posX-1, posY+1));
+            surrounding.put(BL, Optional.of(new Position(posX-1, posY+1)));
         } else {
-            surrounding.put(BL, null);
+            surrounding.put(BL, Optional.empty());
         }
 
         if (posX != Board.WIDTH-1 && posY!=Board.HEIGHT-1) {
-            surrounding.put(BR, new Position(posX+1, posY+1));
+            surrounding.put(BR, Optional.of(new Position(posX+1, posY+1)));
         } else {
-            surrounding.put(BR, null);
+            surrounding.put(BR, Optional.empty());
         }
 
         // The size of each rectangle
@@ -110,7 +111,7 @@ public class Tile extends Rectangle {
         this.piece = null;
     }
 
-    public HashMap<String, Position> getSurrounding() {
+    public HashMap<String, Optional<Position>> getSurrounding() {
         return surrounding;
     }
 
