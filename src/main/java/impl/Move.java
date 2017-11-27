@@ -6,6 +6,7 @@ public class Move {
 
     protected Position dest;
     protected Piece piece;
+    protected int statusCode;
 
     public Move(Piece piece, Position dest) {
         this.dest = dest;
@@ -45,6 +46,14 @@ public class Move {
                 move.getDest().getY() == this.getDest().getY();
 
         return result;
+    }
+
+    public void setStatusCode(int code) {
+        this.statusCode = code;
+    }
+
+    public int getStatusCode() {
+        return statusCode;
     }
 
     @Override

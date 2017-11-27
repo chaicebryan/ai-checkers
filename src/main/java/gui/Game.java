@@ -42,6 +42,7 @@ public class Game extends Application {
     private List<Move> availableMoves;
     private List<Take> availableTakes;
     private boolean gameInProgress;
+    public static TextArea updates;
 
     public Game() {
         board = new Board();
@@ -115,6 +116,14 @@ public class Game extends Application {
             );
             processMove(new Move(piece, newPos));
         })));
+    }
+
+    private void removePiecesFromBoard() {
+        for (int i = 0; i < Board.HEIGHT; i++) {
+            for (int j = 0; j < Board.WIDTH; j++) {
+                board.getState()[i][j].setPiece(null);
+            }
+        }
     }
 
     private void processMove(Move move) {
@@ -257,11 +266,11 @@ public class Game extends Application {
 
         VBox buttons = createGameButtons();
 
-        TextArea updates = new TextArea();
+        updates = new TextArea();
         VBox updatesBox = new VBox(updates);
         updatesBox.setMaxWidth(200);
         updatesBox.setPadding(new Insets(10, 0, 0, 0));
-        updates.setText("Welcome!");
+        updates.setText("Welcome!\n");
 
 
         VBox sideMenu = new VBox();
@@ -300,6 +309,8 @@ public class Game extends Application {
             blackPieces = new ArrayList<>();
             unmarkForceTakes(availableTakes);
             unMarkValidMoves(availableMoves);
+            currentPlayer = player1;
+            removePiecesFromBoard();
         }));
         restart.setPrefSize(100, 40);
         Button start = new Button("start");

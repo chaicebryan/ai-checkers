@@ -47,6 +47,19 @@ public class Board {
             move.getPiece().relocate(move.getDest().getX() * Piece.WIDTH,move.getDest().getY() * Piece.HEIGHT);
             return true;
         } else {
+
+            switch (move.getStatusCode()) {
+                case 1: Game.updates.appendText("Out Of Bounds\n");
+                break;
+                case 2: Game.updates.appendText("Can't move that far\n");
+                break;
+                case 3: Game.updates.appendText("Only diagonal moves allowed\n");
+                break;
+                case 4: Game.updates.appendText("Tile already occupied\n");
+                break;
+                case 5: Game.updates.appendText("This piece cannot move in that direction\n");
+                break;
+            }
             // Snap back to original position
             move.getPiece().relocate(move.getPiece().getPosition().getX() * Piece.WIDTH, move.getPiece().getPosition().getY() * Piece.HEIGHT);
             return false;
@@ -91,31 +104,44 @@ public class Board {
         if (player.getSide() != move.getPiece().getSide()) {
             return false;
         }
-
-        if (Math.abs(move.getPiece().getPosition().getX() - move.getDest().getX()) > 1 || Math.abs(move.getPiece().getPosition().getY() - move.getDest().getY()) > 1 ) {
-            return false;
-        }
         // Don't let pieces go off the board
         // This should come first to prevent any exceptions on further board operations
-        if (outOfBounds(move.getDest()) || placedOnWrongColour(move.getDest())) {
-            System.out.println("bad");
+        if (outOfBounds(move.getDest())) {
+            if (player.isHuman()) {
+                move.setStatusCode(1);
+            }
+            return false;
+        }
+
+        if (Math.abs(move.getPiece().getPosition().getX() - move.getDest().getX()) > 1 || Math.abs(move.getPiece().getPosition().getY() - move.getDest().getY()) > 1 ) {
+            if (player.isHuman()) {
+                move.setStatusCode(2);
+            }
             return false;
         }
 
         // Only diagonal moves are allowed for any move to be valid
-        if (nonDiagonalMove(move.getOrigin(), move.getDest())) {
+        if (placedOnWrongColour(move.getDest())) {
+            if (player.isHuman()) {
+                move.setStatusCode(3);
+            }
             return false;
         }
 
         // Can't move a piece to a tile that already contains a piece
         if (tileAlreadyOccupied(move.getDest())) {
-            System.out.println(true);
+            if (player.isHuman()) {
+                move.setStatusCode(4);
+            }
             return false;
         }
 
         // Players at the bottom of the board can only move up and vice versa
         // But exceptions are made for king pieces
         if (!directionIsValid(player, move)) {
+            if (player.isHuman()) {
+                move.setStatusCode(5);
+            }
             return false;
         }
 
@@ -234,11 +260,6 @@ public class Board {
     // Enforces the rule that only Brown (or Black) squares may be occupied
     private boolean placedOnWrongColour(Position newPos) {
         return tileAt(newPos).getType()  == TileType.YELLOW;
-    }
-
-    // Determines if a move is diagonal or not
-    private boolean nonDiagonalMove(Position oldPos, Position newPos) {
-        return newPos.getX() == oldPos.getX() || newPos.getY() == oldPos.getY();
     }
 
     // Returns whether or not a given tile already has a piece
