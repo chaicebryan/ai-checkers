@@ -6,7 +6,6 @@ import static main.java.gui.Tile.TL;
 import static main.java.gui.Tile.TR;
 
 import java.util.ArrayList;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Optional;
@@ -36,7 +35,7 @@ public class Board {
 
     // Attempts a move from the pieces original position to a specified new position
     // If the move is valid and was made then this method returns true so that we can end the players turn
-    public boolean attemptMove(Player player, Move move) {
+    public Boolean attemptMove(Player player, Move move) {
         if (moveIsValid(player, move)) {
             // Update tile content
             // Remove piece from old position
@@ -58,7 +57,6 @@ public class Board {
         if (takes.contains(move)) {
 
             Take take = takes.get(takes.indexOf(move));
-            // Update tile content
             // Remove piece from old position
             this.tileAt(move.getDest()).setPiece(move.getPiece());
             this.removePieceAt(move.getPiece().getPosition());
@@ -89,6 +87,14 @@ public class Board {
     // It does this by considering the piece's current position and a specified new position
     // It also checks that this move is valid for the player, depending on which side they are on, on the board
     private boolean moveIsValid(Player player, Move move) {
+
+        if (player.getSide() != move.getPiece().getSide()) {
+            return false;
+        }
+
+        if (Math.abs(move.getPiece().getPosition().getX() - move.getDest().getX()) > 1 || Math.abs(move.getPiece().getPosition().getY() - move.getDest().getY()) > 1 ) {
+            return false;
+        }
         // Don't let pieces go off the board
         // This should come first to prevent any exceptions on further board operations
         if (outOfBounds(move.getDest()) || placedOnWrongColour(move.getDest())) {
@@ -128,25 +134,25 @@ public class Board {
         pieces.forEach((piece) -> {
             if (!piece.isKing()) {
                 if (piece.getSide() == Side.BOTTOM) {
-                    tileAt(piece.getPosition()).getSurrounding().get(TL).ifPresent(position -> {
-                        possibleMoves.add(new Move(piece, position));
-                    });
-                    tileAt(piece.getPosition()).getSurrounding().get(TR).ifPresent(position -> {
-                        possibleMoves.add(new Move(piece, position));
-                    });
+                    tileAt(piece.getPosition()).getSurrounding().get(TL)
+                            .ifPresent(position -> possibleMoves.add(new Move(piece, position)));
+                    tileAt(piece.getPosition()).getSurrounding().get(TR)
+                            .ifPresent(position -> possibleMoves.add(new Move(piece, position)));
                 } else {
-                    tileAt(piece.getPosition()).getSurrounding().get(BL).ifPresent(position -> {
-                        possibleMoves.add(new Move(piece, position));
-                    });
-                    tileAt(piece.getPosition()).getSurrounding().get(BR).ifPresent(position -> {
-                        possibleMoves.add(new Move(piece, position));
-                    });
+                    tileAt(piece.getPosition()).getSurrounding().get(BL)
+                            .ifPresent(position -> possibleMoves.add(new Move(piece, position)));
+                    tileAt(piece.getPosition()).getSurrounding().get(BR)
+                            .ifPresent(position -> possibleMoves.add(new Move(piece, position)));
                 }
             } else {
-                tileAt(piece.getPosition()).getSurrounding().get(TL).ifPresent(position -> possibleMoves.add(new Move(piece, position)));
-                tileAt(piece.getPosition()).getSurrounding().get(TR).ifPresent(position -> possibleMoves.add(new Move(piece, position)));
-                tileAt(piece.getPosition()).getSurrounding().get(BL).ifPresent(position -> possibleMoves.add(new Move(piece, position)));
-                tileAt(piece.getPosition()).getSurrounding().get(BR).ifPresent(position -> possibleMoves.add(new Move(piece, position)));
+                tileAt(piece.getPosition()).getSurrounding().get(TL)
+                        .ifPresent(position -> possibleMoves.add(new Move(piece, position)));
+                tileAt(piece.getPosition()).getSurrounding().get(TR)
+                        .ifPresent(position -> possibleMoves.add(new Move(piece, position)));
+                tileAt(piece.getPosition()).getSurrounding().get(BL)
+                        .ifPresent(position -> possibleMoves.add(new Move(piece, position)));
+                tileAt(piece.getPosition()).getSurrounding().get(BR)
+                        .ifPresent(position -> possibleMoves.add(new Move(piece, position)));
 
             }
         });

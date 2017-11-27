@@ -1,8 +1,36 @@
 .hbox {
-    -fx-background-image: url("background.jpg");
+    -fx-background-color: #516570;
+    -fx-spacing: 5px;
 }
 
 #header {
         -fx-font: 40px Tahoma;
         -fx-underline: true;
+        -fx-text-fill: #aeb6ba;
+}
+
+.button {
+    -fx-background-color:#000000,
+        linear-gradient(#7ebcea, #2f4b8f),
+        linear-gradient(#426ab7, #263e75),
+        linear-gradient(#395cab, #223768);
+    -fx-background-insets: 0,1,2,3;
+    -fx-background-radius: 3,2,2,2;
+    -fx-text-fill: white;
+    -fx-font-size: 12px;
+    -fx-padding: 5px;
+    -fx-border-insets: 5px;
+    -fx-background-insets: 5px;
+}
+
+.label {
+    -fx-text-fill: #aeb6ba;
+    -fx-font-weight: bold;
+    -fx-font: 20px Tahoma;
+}
+
+.combo-box {
+    -fx-spacing: 10px;
+    -fx-border-insets: 5px;
+    -fx-background-insets: 5px;
 }

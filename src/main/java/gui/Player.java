@@ -27,6 +27,10 @@ public class Player {
         return isHuman;
     }
 
+    public void setClass(boolean isHuman) {
+        this.isHuman = isHuman;
+    }
+
     public void setSide(Side side) {
         this.side = side;
     }

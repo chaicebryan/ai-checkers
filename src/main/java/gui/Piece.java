@@ -2,8 +2,8 @@ package main.java.gui;
 
 import java.util.HashSet;
 
+import javafx.scene.effect.Bloom;
 import javafx.scene.image.Image;
-import javafx.scene.image.ImageView;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.paint.Paint;
@@ -50,6 +50,7 @@ public class Piece extends Circle {
         nearbyOpponents = new HashSet<>();
         this.side = side;
 
+
         // Draw piece to its initial position on the UI
         relocate(posX * HEIGHT, posY * WIDTH);
 
@@ -60,13 +61,12 @@ public class Piece extends Circle {
         // Assign pieces correct colours
         if (pieceType.equals(PieceType.BLACK)) {
             setFill(Paint.valueOf("#000"));
-            setStroke(Color.WHITE);
-            defaultStroke = Color.WHITE;
+            setStroke(Color.BLACK);
         } else {
             setFill(Paint.valueOf("#FF0000"));
             setStroke(Paint.valueOf("#000"));
-            defaultStroke = Color.BLACK;
         }
+        defaultStroke = Color.BLACK;
 
         // Enable click and drag for the piece
         setOnMouseDragged((e) -> {
@@ -76,6 +76,10 @@ public class Piece extends Circle {
         setOnMousePressed((e) -> {
           System.out.println(this.toString());
         });
+
+        Bloom bloom = new Bloom();
+        bloom.setThreshold(1.0);
+        setEffect(bloom);
     }
 
     // Change the position of this piece to a new specified position
