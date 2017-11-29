@@ -122,6 +122,10 @@ public class Piece extends Circle {
         return defaultStroke;
     }
 
+    public void moveTo(Position newPos) {
+        relocate(newPos.getX() * WIDTH, newPos.getY() * HEIGHT);
+    }
+
     @Override
     public String toString() {
         return "[" + boardPosition.getX() + ", " + boardPosition.getY() + " ," + pieceType.toString() + " ," + side.toString() + "]" ;

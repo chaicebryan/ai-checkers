@@ -35,65 +35,46 @@ public class Board {
 
     // Attempts a move from the pieces original position to a specified new position
     // If the move is valid and was made then this method returns true so that we can end the players turn
-    public Boolean attemptMove(Player player, Move move) {
-        if (moveIsValid(player, move)) {
-            // Update tile content
-            // Remove piece from old position
-            this.tileAt(move.getDest()).setPiece(move.getPiece());
-            this.removePieceAt(move.getPiece().getPosition());
+ //  public Boolean attemptMove(Player player, Move move) {
+ //      if (moveIsValid(player, move)) {
+ //          // Update tile content
+ //          // Remove piece from old position
+ //          this.tileAt(move.getDest()).setPiece(move.getPiece());
+ //          this.removePieceAt(move.getPiece().getPosition());
 
-            // Move piece to new position
-            move.getPiece().updatePositionTo(move.getDest());
-            move.getPiece().relocate(move.getDest().getX() * Piece.WIDTH,move.getDest().getY() * Piece.HEIGHT);
-            return true;
-        } else {
+ //          // Move piece to new position
+ //          move.getPiece().updatePositionTo(move.getDest());
+ //          move.getPiece().relocate(move.getDest().getX() * Piece.WIDTH,move.getDest().getY() * Piece.HEIGHT);
+ //          return true;
+ //      } else {
 
-            switch (move.getStatusCode()) {
-                case 1: Game.updates.appendText("Out Of Bounds\n");
-                break;
-                case 2: Game.updates.appendText("Can't move that far\n");
-                break;
-                case 3: Game.updates.appendText("Only diagonal moves allowed\n");
-                break;
-                case 4: Game.updates.appendText("Tile already occupied\n");
-                break;
-                case 5: Game.updates.appendText("This piece cannot move in that direction\n");
-                break;
-            }
-            // Snap back to original position
-            move.getPiece().relocate(move.getPiece().getPosition().getX() * Piece.WIDTH, move.getPiece().getPosition().getY() * Piece.HEIGHT);
-            return false;
+ //          switch (move.getStatusCode()) {
+ //              case 1: Game.updates.appendText("Out Of Bounds\n");
+ //              break;
+ //              case 2: Game.updates.appendText("Can't move that far\n");
+ //              break;
+ //              case 3: Game.updates.appendText("Only diagonal moves allowed\n");
+ //              break;
+ //              case 4: Game.updates.appendText("Tile already occupied\n");
+ //              break;
+ //              case 5: Game.updates.appendText("This piece cannot move in that direction\n");
+ //              break;
+ //          }
+ //          // Snap back to original position
+ //          move.getPiece().relocate(move.getPiece().getPosition().getX() * Piece.WIDTH, move.getPiece().getPosition().getY() * Piece.HEIGHT);
+ //          return false;
+ //      }
+ //  }
+
+    public void acceptMove(Move move) {
+        if (move instanceof Take) {
+            Take take = (Take) move;
+            Piece target = take.getTarget();
+            removePieceAt(target.getPosition());
         }
-    }
 
-    public Optional<Take> attemptMove(Move move, List<Take> takes) {
-        if (takes.contains(move)) {
-
-            Take take = takes.get(takes.indexOf(move));
-            // Remove piece from old position
-            this.tileAt(move.getDest()).setPiece(move.getPiece());
-            this.removePieceAt(move.getPiece().getPosition());
-
-            if (take != null) {
-                this.removePieceAt(take.getTarget().getPosition());
-            }
-            // Move piece to new position
-            move.getPiece().updatePositionTo(move.getDest());
-            this.tileAt(move.getDest()).setPiece(move.getPiece());
-            move.getPiece().relocate(move.getDest().getX() * Piece.WIDTH, move.getDest().getY() * Piece.HEIGHT);
-            return Optional.of(take);
-        } else {
-            move.getPiece().relocate(move.getPiece().getPosition().getX() * Piece.WIDTH, move.getPiece().getPosition().getY() * Piece.HEIGHT);
-            return Optional.empty();
-        }
-    }
-
-    public void printContents() {
-        for (int i = 0; i < WIDTH; i++) {
-            for (int j = 0; j< HEIGHT; j++) {
-                System.out.println(state[i][j].toString());
-            }
-        }
+        removePieceAt(move.getPiece().getPosition());
+        tileAt(move.getDest()).setPiece(move.getPiece());
     }
 
     // Carries out a number of checks to determine if the attempted move is valid

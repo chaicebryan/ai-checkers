@@ -110,87 +110,115 @@ public class Game extends Application {
 
     private void setUpPieceLogic() {
         pieces.forEach((piece -> piece.setOnMouseReleased((event) -> {
-            Position newPos = GameUtils.getInstance().convertToBoardPosition(
+            Position userMove = GameUtils.getInstance().convertToBoardPosition(
                     piece.getLayoutX(),
                     piece.getLayoutY()
             );
-            processMove(new Move(piece, newPos));
+            tryUserMove(new Move(piece, userMove));
         })));
     }
 
-    private void removePiecesFromBoard() {
-        for (int i = 0; i < Board.HEIGHT; i++) {
-            for (int j = 0; j < Board.WIDTH; j++) {
-                board.getState()[i][j].setPiece(null);
-            }
-        }
+    private void startNewTurn() {
+        availableMoves = board.findValidMoves(currentPlayer, getPiecesForPlayer(currentPlayer));
+        availableTakes = board.findForceTakes(getPiecesForPlayer(currentPlayer));
+        printState();
     }
 
-    private void processMove(Move move) {
-        if (takesExist()) {
-            Optional<Take> takeMade = board.attemptMove(move, availableTakes);
-            if (takeMade.isPresent()) {
-                processTake(takeMade.get());
-
-                unmarkForceTakes(availableTakes);
-                availableTakes = board.findForceTakes(Collections.singletonList(move.getPiece()));
-
-                if (!takesExist()) {
-                    finishMove();
-                } else {
-                    markForceTakes(availableTakes);
-                }
-            }
-        } else if (board.attemptMove(currentPlayer, move)){
-            finishMove();
-        }
-    }
-
-    private void finishMove() {
-        System.out.println("completed");
-        this.unmarkForceTakes(availableTakes);
-        this.unMarkValidMoves(availableMoves);
-        availableTakes = new ArrayList<>();
-        availableMoves = new ArrayList<>();
-        endPlayerTurn(currentPlayer);
-    }
-
-    private void processTake(Take takeMade) {
-        if (takeMade.getTarget().isKing()) {
-            takeMade.getPiece().makeKing();
-        }
-        if (currentPlayer.getColor() == PieceType.RED) {
-            blackPieces.remove(takeMade.getTarget());
-            takeMade.getTarget().setVisible(false);
-        } else {
-            redPieces.remove(takeMade.getTarget());
-            takeMade.getTarget().setVisible(false);
-        }
-    }
-
-    private void endPlayerTurn(Player player) {
-        if (player.getSide() == Side.BOTTOM) {
-            currentPlayer = player2;
-            System.out.println("Changed to player: " + currentPlayer.getSide());
-
-            availableMoves = board.findValidMoves(currentPlayer, redPieces);
-            availableTakes = board.findForceTakes(redPieces);
+    private void tryUserMove(Move move) {
+        if (availableTakes.isEmpty() && availableMoves.contains(move)) {
+            makeMove(move);
+            animateMove(move);
+            nextMove();
+        } else  if (!availableTakes.isEmpty() && availableTakes.contains(move)) {
+            makeTake(move);
+            // Movement animation
+            animateTake(move);
+            unmarkForceTakes(availableTakes);
+            availableTakes = findAdditionalTakes(move.getPiece());
+            markForceTakes(availableTakes);
             if (availableTakes.isEmpty()) {
-            //    markValidMoves(availableMoves);
-            } {
-                markForceTakes(availableTakes);
+                nextMove();
             }
+        } else {
+            move.getPiece().moveTo(move.getOrigin());
+        }
+    }
+
+    private List<Take> findTakes() {
+        return board.findForceTakes(getPiecesForPlayer(currentPlayer));
+    }
+
+    private void makeMove(Move move) {
+
+        // Update board state
+        board.acceptMove(move);
+
+        // Movement animation
+        move.getPiece().moveTo(move.getDest());
+
+        // Changing position state of piece
+        move.getPiece().updatePositionTo(move.getDest());
+    }
+
+    private void makeTake(Move move) {
+        Take take = availableTakes.get(availableTakes.indexOf(move));
+        Piece attacker = take.getPiece();
+        Piece target = take.getTarget();
+        if (target.isKing()) {
+            attacker.makeKing();
+        }
+
+        getPiecesForPlayer(otherPlayer()).remove(target);
+        target.setVisible(false);
+
+        // Update board state
+        board.acceptMove(take);
+
+
+        // Changing position state of piece
+        take.getPiece().updatePositionTo(take.getDest());
+    }
+
+    private void animateMove(Move move) {
+        move.getPiece().moveTo(move.getDest());
+    }
+
+    private void animateTake(Move move) {
+        Take take = availableTakes.get(availableTakes.indexOf(move));
+        take.getPiece().moveTo(take.getDest());
+    }
+
+    private void nextMove() {
+        unMarkValidMoves(availableMoves);
+        unmarkForceTakes(availableTakes);
+
+        changePlayer();
+
+        availableMoves = board.findValidMoves(currentPlayer, getPiecesForPlayer(currentPlayer));
+        availableTakes = board.findForceTakes(getPiecesForPlayer(currentPlayer));
+        markForceTakes(availableTakes);
+
+        printState();
+    }
+
+    private void changePlayer() {
+        if (currentPlayer == player1) {
+            currentPlayer = player2;
         } else {
             currentPlayer = player1;
-            System.out.println("Changed to player: " + currentPlayer.getSide());
-            availableMoves = board.findValidMoves(currentPlayer, blackPieces);
-            availableTakes = board.findForceTakes(blackPieces);
-            if (availableTakes.isEmpty()) {
-            //    markValidMoves(availableMoves);
-            } {
-                markForceTakes(availableTakes);
-            }
         }
+    }
+
+    private Player otherPlayer() {
+        if (currentPlayer == player1) {
+            return player2;
+        } else {
+            return player1;
+        }
+    }
+
+    private List<Piece> getPiecesForPlayer(Player player) {
+        return player == player1 ? blackPieces : redPieces;
     }
 
     private void markValidMoves(List<Move> moves) {
@@ -212,7 +240,6 @@ public class Game extends Application {
 
     private void markForceTakes(List<Take> takes) {
         takes.forEach((take -> {
-            System.out.println("Marking: " + take.toString());
             take.getPiece().setStroke(Color.GREEN);
             take.getPiece().setStrokeWidth(4);
             board.tileAt(take.getDest()).setFill(Paint.valueOf("#c4513c"));
@@ -221,12 +248,15 @@ public class Game extends Application {
 
     private void unmarkForceTakes(List<Take> takes) {
         takes.forEach((take -> {
-            System.out.println("unmarking");
             Piece attacker = take.getPiece();
             attacker.setStroke(attacker.getDefaultStroke());
             attacker.setStrokeWidth(1);
             board.tileAt(take.getDest()).setFill(Paint.valueOf("#d18b47"));
         }));
+    }
+
+    private ArrayList<Take> findAdditionalTakes(Piece piece) {
+        return board.findForceTakes(Collections.singletonList(piece));
     }
 
     private boolean takesExist() {
@@ -300,19 +330,6 @@ public class Game extends Application {
 
 
     private VBox createGameButtons() {
-        Button restart = new Button("stop");
-        restart.setOnAction((event -> {
-            gameInProgress = false;
-            boardPane.getChildren().removeAll(redPieces);
-            boardPane.getChildren().removeAll(blackPieces);
-            redPieces = new ArrayList<>();
-            blackPieces = new ArrayList<>();
-            unmarkForceTakes(availableTakes);
-            unMarkValidMoves(availableMoves);
-            currentPlayer = player1;
-            removePiecesFromBoard();
-        }));
-        restart.setPrefSize(100, 40);
         Button start = new Button("start");
         start.setPrefSize(100, 40);
         start.setOnAction((e) -> {
@@ -321,16 +338,21 @@ public class Game extends Application {
                 setUpPieces();
                 boardPane.getChildren().addAll(redPieces);
                 boardPane.getChildren().addAll(blackPieces);
+                startNewTurn();
             } else {
                 System.out.println("Game already in progress");
             }
         });
 
+        Button stop = new Button("stop");
+        stop.setOnAction((event -> {
+            resetGame();
+        }));
+        stop.setPrefSize(100, 40);
+
         Button instructions = new Button("Instructions");
         instructions.setPrefSize(100, 40);
         instructions.setOnAction((e) -> {
-            board.printContents();
-
             Desktop desktop = Desktop.getDesktop();
             try {
                 desktop.browse(new URI("http://www.indepthinfo.com/checkers/play.shtml"));
@@ -346,13 +368,50 @@ public class Game extends Application {
         hint.setOnAction((event -> markValidMoves(availableMoves)));
 
         HBox hBox1= new HBox();
-        hBox1.getChildren().addAll(restart, start);
+        hBox1.getChildren().addAll(stop, start);
         HBox hBox2 = new HBox();
         hBox2.getChildren().addAll(instructions, hint);
 
         VBox buttons = new VBox();
         buttons.getChildren().addAll(hBox1, hBox2);
         return buttons;
+    }
+
+    private void resetGame() {
+        // Game no longer in progress
+        // Stop button now does nothing
+        gameInProgress = false;
+
+        // Game has stopped. Hint button should show nothing if pressed
+        // Therefore availableMoves and availableTakes must be reset
+        unmarkForceTakes(availableTakes);
+        unMarkValidMoves(availableMoves);
+        availableTakes = new ArrayList<>();
+        availableMoves = new ArrayList<>();
+
+        // Remove piece graphics from board
+        boardPane.getChildren().removeAll(redPieces);
+        boardPane.getChildren().removeAll(blackPieces);
+
+        // Wipe board state
+        removePiecesFromBoard();
+
+        // To start again all pieces must be reset
+        redPieces = new ArrayList<>();
+        blackPieces = new ArrayList<>();
+
+        // First player is always player 1
+        currentPlayer = player1;
+
+    }
+
+    // Remove every piece from the backend board array
+    private void removePiecesFromBoard() {
+        for (int i = 0; i < Board.HEIGHT; i++) {
+            for (int j = 0; j < Board.WIDTH; j++) {
+                board.getState()[i][j].setPiece(null);
+            }
+        }
     }
 
     private VBox createPlayerSettings() {
@@ -376,7 +435,7 @@ public class Game extends Application {
 
         ComboBox player2Class = new ComboBox();
         player2Class.getItems().addAll("Human", "AI");
-        player2Class.getSelectionModel().select("AI");
+        player2Class.getSelectionModel().select("Human");
         player2Class.setOnAction((event -> {
             if (player2Class.getSelectionModel().getSelectedIndex() == 0) {
                 player2.setClass(true);
@@ -389,6 +448,13 @@ public class Game extends Application {
         VBox settings = new VBox();
         settings.getChildren().addAll(player1Options, player2Options);
         return settings;
+    }
+
+    private void printState() {
+        System.out.println("------------------------------------------------");
+        System.out.println("Current Player: " + currentPlayer.getSide());
+        System.out.println("Available Moves: " + availableMoves);
+        System.out.println("Available Takes : " + availableTakes);
     }
 
     public static void main(String[] args) {
