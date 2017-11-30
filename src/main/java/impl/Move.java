@@ -6,15 +6,17 @@ public class Move {
 
     protected Position dest;
     protected Piece piece;
+    protected Position origin;
     protected int statusCode;
 
     public Move(Piece piece, Position dest) {
         this.dest = dest;
         this.piece = piece;
+        origin = piece.getPosition();
     }
 
     public Position getOrigin() {
-        return piece.getPosition();
+        return origin;
     }
 
     public Position getDest() {

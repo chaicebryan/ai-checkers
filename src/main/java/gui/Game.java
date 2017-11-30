@@ -7,12 +7,8 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
-import java.util.Optional;
-import java.util.concurrent.TimeUnit;
 
 import javafx.application.Application;
-import javafx.application.Platform;
-import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -28,6 +24,7 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.stage.Stage;
 import main.java.impl.Move;
+import main.java.impl.MoveAndScore;
 import main.java.impl.Position;
 import main.java.impl.Take;
 import main.java.utils.GameUtils;
@@ -46,6 +43,8 @@ public class Game extends Application {
     private List<Take> availableTakes;
     private boolean gameInProgress;
     public static TextArea updates;
+    private List<MoveAndScore> successorEvaluations;
+    private int depthLimit = 3;
 
     public Game() {
         board = new Board();
@@ -59,6 +58,7 @@ public class Game extends Application {
         availableMoves = new ArrayList<>();
         availableTakes = new ArrayList<>();
         gameInProgress = false;
+        successorEvaluations = new ArrayList<>();
     }
 
     public Pane createBoard() {
@@ -79,8 +79,6 @@ public class Game extends Application {
 
                 }
         }
-
-
         return pane;
     }
 
@@ -156,18 +154,6 @@ public class Game extends Application {
         }
     }
 
-    private void makeAIMove() {
-                Move aiMove = getAIMove();
-                if (availableTakes.contains(aiMove)) {
-                    makeTake(aiMove);
-                    animateTake(aiMove);
-                } else {
-                    makeMove(aiMove);
-                    animateMove(aiMove);
-                }
-        nextMove();
-    }
-
     private void tryUserMove(Move move) {
         if (availableTakes.isEmpty() && availableMoves.contains(move)) {
             makeMove(move);
@@ -192,6 +178,10 @@ public class Game extends Application {
         }
     }
 
+    private boolean playerHasWon(Player player) {
+        return getPiecesForPlayer(otherPlayer(player)).isEmpty() || board.findValidMoves(otherPlayer(player), getPiecesForPlayer(otherPlayer(player))).isEmpty();
+    }
+
     private List<Take> findTakes() {
         return board.findForceTakes(getPiecesForPlayer(currentPlayer));
     }
@@ -200,9 +190,6 @@ public class Game extends Application {
 
         // Update board state
         board.acceptMove(move);
-
-        // Movement animation
-        move.getPiece().moveTo(move.getDest());
 
         // Changing position state of piece
         move.getPiece().updatePositionTo(move.getDest());
@@ -216,15 +203,47 @@ public class Game extends Application {
             attacker.makeKing();
         }
 
-        getPiecesForPlayer(otherPlayer()).remove(target);
-        target.setVisible(false);
+        getPiecesForPlayer(otherPlayer(currentPlayer)).remove(target);
 
         // Update board state
         board.acceptMove(take);
 
-
         // Changing position state of piece
         take.getPiece().updatePositionTo(take.getDest());
+    }
+
+    private void undoMove(Move move) {
+        Move reverse = new Move(move.getPiece(), move.getOrigin());
+        board.acceptMove(reverse);
+        move.getPiece().moveTo(move.getOrigin());
+    }
+
+    private void undoTake(Take take) {
+        Move reverse = new Move(take.getPiece(), take.getOrigin());
+        board.acceptMove(reverse);
+        if (take.getTarget().getSide() == Side.BOTTOM) {
+            blackPieces.add(take.getTarget());
+        } else {
+            redPieces.add(take.getTarget());
+        }
+    }
+
+    private void makeAIMove() {
+        startSimulation();
+        Move aiMove = getBestMove();
+        if (availableTakes.contains(aiMove)) {
+            makeTake(aiMove);
+            animateTake(aiMove);
+        } else {
+            makeMove(aiMove);
+            animateMove(aiMove);
+        }
+        nextMove();
+    }
+
+    private void startSimulation() {
+        successorEvaluations = new ArrayList<>();
+        minimax(0, player1);
     }
 
     private Move getAIMove() {
@@ -238,6 +257,75 @@ public class Game extends Application {
         }
     }
 
+    private Move getBestMove() {
+        return currentPlayer == player1 ? Collections.max(successorEvaluations).getMove() : Collections.min(successorEvaluations).getMove();
+    }
+
+    private int minimax(int depth, Player player) {
+        List<Move> movesAvailable = board.findValidMoves(player, getPiecesForPlayer(player));
+        List<Take> takesAvailable = board.findForceTakes(getPiecesForPlayer(player));
+
+        if (player == player1 && playerHasWon(player)) {
+            return 1000;
+        } else if (player == player2 && playerHasWon(player)) {
+            return -1000;
+        }
+
+        if (depth <= depthLimit) {
+            if (player == player1) {
+                int bestScore = Integer.MAX_VALUE;
+                if (!takesAvailable.isEmpty()) {
+                    for (Take take : takesAvailable) {
+                        makeTake(take);
+                        int eval = minimax(depth + 1, otherPlayer(player));
+                        bestScore = Math.max(bestScore, eval);
+                        undoTake(take);
+                        if (depth == 0) {
+                            successorEvaluations.add(new MoveAndScore(take, bestScore));
+                        }
+                        return bestScore;
+                    }
+                } else if (!movesAvailable.isEmpty()) {
+                    for (Move move : movesAvailable) {
+                        makeMove(move);
+                        int eval = minimax(depth + 1, otherPlayer(player));
+                        bestScore = Math.max(bestScore, eval);
+                        undoMove(move);
+                        if (depth == 0) {
+                            successorEvaluations.add(new MoveAndScore(move, bestScore));
+                        }
+                        return bestScore;
+                    }
+                }
+            } else if (player == player2) {
+                int bestScore = Integer.MIN_VALUE;
+                if (!takesAvailable.isEmpty()) {
+                    for (Take take : takesAvailable) {
+                        makeTake(take);
+                        int eval = minimax(depth + 1, otherPlayer(player));
+                        bestScore = Math.min(bestScore, eval);
+                        undoTake(take);
+                    }
+                    return bestScore;
+
+                } else if (!availableMoves.isEmpty()) {
+                    for (Move move : movesAvailable) {
+                        makeMove(move);
+                        int eval = minimax(depth + 1, otherPlayer(player));
+                        bestScore = Math.min(bestScore, eval);
+                        undoMove(move);
+                    }
+                    return bestScore;
+                }
+            }
+        }
+        return evaluateState();
+    }
+
+    private int evaluateState() {
+            return 10;
+    }
+
     private void animateMove(Move move) {
         move.getPiece().moveTo(move.getDest());
     }
@@ -245,6 +333,7 @@ public class Game extends Application {
     private void animateTake(Move move) {
         Take take = availableTakes.get(availableTakes.indexOf(move));
         take.getPiece().moveTo(take.getDest());
+        take.getTarget().setVisible(false);
     }
 
     private void nextMove() {
@@ -268,8 +357,8 @@ public class Game extends Application {
         }
     }
 
-    private Player otherPlayer() {
-        if (currentPlayer == player1) {
+    private Player otherPlayer(Player player) {
+        if (player == player1) {
             return player2;
         } else {
             return player1;
