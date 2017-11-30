@@ -8,8 +8,11 @@ import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
 import java.util.Optional;
+import java.util.concurrent.TimeUnit;
 
 import javafx.application.Application;
+import javafx.application.Platform;
+import javafx.concurrent.Task;
 import javafx.geometry.Insets;
 import javafx.scene.Scene;
 import javafx.scene.control.Button;
@@ -120,8 +123,49 @@ public class Game extends Application {
 
     private void startNewTurn() {
         availableMoves = board.findValidMoves(currentPlayer, getPiecesForPlayer(currentPlayer));
+        System.out.println(availableMoves.size());
         availableTakes = board.findForceTakes(getPiecesForPlayer(currentPlayer));
         printState();
+    }
+
+    private void runAIGame() {
+        while (true) {
+            new Thread(() -> {
+                makeAIMove();
+                try {
+                    Thread.currentThread().sleep(1000);
+                } catch (InterruptedException e) {
+                    e.printStackTrace();
+                }
+            }).start();
+            try {
+                Thread.currentThread().sleep(1000);
+            } catch (InterruptedException e) {
+                e.printStackTrace();
+            }
+            if (Thread.currentThread().isInterrupted()) {
+                System.out.println(true);
+                break;
+            }
+        }
+    }
+
+    public void startNormalGame() {
+        if (!currentPlayer.isHuman()) {
+            makeAIMove();
+        }
+    }
+
+    private void makeAIMove() {
+                Move aiMove = getAIMove();
+                if (availableTakes.contains(aiMove)) {
+                    makeTake(aiMove);
+                    animateTake(aiMove);
+                } else {
+                    makeMove(aiMove);
+                    animateMove(aiMove);
+                }
+        nextMove();
     }
 
     private void tryUserMove(Move move) {
@@ -141,6 +185,10 @@ public class Game extends Application {
             }
         } else {
             move.getPiece().moveTo(move.getOrigin());
+        }
+
+        if (!currentPlayer.isHuman()) {
+            makeAIMove();
         }
     }
 
@@ -177,6 +225,17 @@ public class Game extends Application {
 
         // Changing position state of piece
         take.getPiece().updatePositionTo(take.getDest());
+    }
+
+    private Move getAIMove() {
+        availableTakes = findTakes();
+        availableMoves = board.findValidMoves(currentPlayer, getPiecesForPlayer(currentPlayer));
+
+        if (!availableTakes.isEmpty()) {
+            return availableTakes.get((int) (Math.random() * availableTakes.size()));
+        } else {
+            return availableMoves.get((int) (Math.random() * availableMoves.size()));
+        }
     }
 
     private void animateMove(Move move) {
@@ -330,6 +389,7 @@ public class Game extends Application {
 
 
     private VBox createGameButtons() {
+
         Button start = new Button("start");
         start.setPrefSize(100, 40);
         start.setOnAction((e) -> {
@@ -339,6 +399,14 @@ public class Game extends Application {
                 boardPane.getChildren().addAll(redPieces);
                 boardPane.getChildren().addAll(blackPieces);
                 startNewTurn();
+
+                if (!player1.isHuman() && !player2.isHuman()) {
+                    Thread AImatch = new Thread(() -> runAIGame());
+                    AImatch.start();
+                } else {
+                    Thread regularMatch = new Thread(() -> startNormalGame());
+                    regularMatch.start();
+                }
             } else {
                 System.out.println("Game already in progress");
             }
