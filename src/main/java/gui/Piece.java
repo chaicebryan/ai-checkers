@@ -8,7 +8,10 @@ import javafx.scene.paint.Color;
 import javafx.scene.paint.ImagePattern;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Circle;
+import main.java.impl.Board;
+import main.java.impl.PieceType;
 import main.java.impl.Position;
+import main.java.impl.Side;
 
 // Piece represents a piece that exists within a tile on the board.
 // It has an x. y position
@@ -86,18 +89,25 @@ public class Piece extends Circle {
     public void updatePositionTo(Position newPos) {
         if ((side == Side.BOTTOM && newPos.getY() == 0) || (side == Side.TOP && newPos.getY() == Board.HEIGHT-1)) {
             this.makeKing();
-            boardPosition.changeTo(newPos.getX(), newPos.getY());
+            boardPosition = newPos;
         } else {
-            boardPosition.changeTo(newPos.getX(), newPos.getY());
+            boardPosition = newPos;
         }
     }
 
     // Make this piece a king
     public void makeKing() {
         this.isKing = true;
+    }
+
+    public void demote() {
+        this.isKing = false;
+    }
+
+    public void animateKingConversion() {
         Image image;
         if (pieceType == PieceType.RED) {
-             image = new Image("redking.png");
+            image = new Image("redking.png");
         } else {
             image = new Image("blackking.png");
         }

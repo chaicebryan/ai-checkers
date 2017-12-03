@@ -1,4 +1,4 @@
-package main.java.gui;
+package main.java.impl;
 
 import static main.java.gui.Tile.BL;
 import static main.java.gui.Tile.BR;
@@ -10,9 +10,14 @@ import java.util.List;
 import java.util.Map;
 import java.util.Optional;
 
+import main.java.gui.Piece;
+import main.java.gui.Tile;
 import main.java.impl.Move;
+import main.java.impl.Player;
 import main.java.impl.Position;
+import main.java.impl.Side;
 import main.java.impl.Take;
+import main.java.impl.TileType;
 
 // The Board class is a state representation of the board that contains a number of operations for editing this state
 public class Board {
@@ -267,7 +272,34 @@ public class Board {
                 return false;
             }
             return true;
+    }
+
+    private void printRow(Tile[] row) {
+        String rows = "";
+        String theRow = "";
+        for (Tile tile : row) {
+            theRow += tile + "\t";
         }
+        rows += theRow;
+        System.out.println();
+    }
+
+    public void printAsGrid() {
+        String rows = "";
+        String theRow = "";
+            for (Tile[] row : state) {
+                theRow = "";
+                for (Tile tile : row) {
+                    theRow += tile + "\t";
+                }
+                rows = theRow + "\n" + rows;
+            }
+
+        System.out.println(rows);
+        System.out.println();
+        System.out.println("--------------------------");
+        System.out.println();
+    }
 
     // Returns the tile at a specified position
     public Tile tileAt(Position pos) {

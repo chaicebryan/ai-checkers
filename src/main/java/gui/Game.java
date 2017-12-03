@@ -23,10 +23,15 @@ import javafx.scene.layout.VBox;
 import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.stage.Stage;
+import main.java.impl.Board;
 import main.java.impl.Move;
 import main.java.impl.MoveAndScore;
+import main.java.impl.PieceType;
+import main.java.impl.Player;
 import main.java.impl.Position;
+import main.java.impl.Side;
 import main.java.impl.Take;
+import main.java.impl.TileType;
 import main.java.utils.GameUtils;
 
 public class Game extends Application {
@@ -44,7 +49,7 @@ public class Game extends Application {
     private boolean gameInProgress;
     public static TextArea updates;
     private List<MoveAndScore> successorEvaluations;
-    private int depthLimit = 3;
+    private int depthLimit = 10;
 
     public Game() {
         board = new Board();
@@ -187,6 +192,10 @@ public class Game extends Application {
     }
 
     private void makeMove(Move move) {
+        if ((move.getPiece().getSide() == Side.BOTTOM && move.getDest().getY() == 0) ||
+                (move.getPiece().getSide() == Side.TOP && move.getDest().getY() == Board.HEIGHT-1)) {
+            move.getPiece().makeKing();
+        }
 
         // Update board state
         board.acceptMove(move);
@@ -197,9 +206,10 @@ public class Game extends Application {
 
     private void makeTake(Move move) {
         Take take = availableTakes.get(availableTakes.indexOf(move));
+
         Piece attacker = take.getPiece();
         Piece target = take.getTarget();
-        if (target.isKing()) {
+        if (take.moveCausedKing()) {
             attacker.makeKing();
         }
 
@@ -214,13 +224,24 @@ public class Game extends Application {
 
     private void undoMove(Move move) {
         Move reverse = new Move(move.getPiece(), move.getOrigin());
+
+        if (move.moveCausedKing()) {
+            move.getPiece().demote();
+        }
+
         board.acceptMove(reverse);
-        move.getPiece().moveTo(move.getOrigin());
+        move.getPiece().updatePositionTo(move.getOrigin());
     }
 
     private void undoTake(Take take) {
         Move reverse = new Move(take.getPiece(), take.getOrigin());
         board.acceptMove(reverse);
+        board.tileAt(take.getTarget().getPosition()).setPiece(take.getTarget());
+        take.getPiece().updatePositionTo(take.getOrigin());
+
+        if (take.moveCausedKing()) {
+            take.getPiece().demote();
+        }
         if (take.getTarget().getSide() == Side.BOTTOM) {
             blackPieces.add(take.getTarget());
         } else {
@@ -230,6 +251,7 @@ public class Game extends Application {
 
     private void makeAIMove() {
         startSimulation();
+
         Move aiMove = getBestMove();
         if (availableTakes.contains(aiMove)) {
             makeTake(aiMove);
@@ -243,7 +265,7 @@ public class Game extends Application {
 
     private void startSimulation() {
         successorEvaluations = new ArrayList<>();
-        minimax(0, player1);
+        minimax(0, player2);
     }
 
     private Move getAIMove() {
@@ -262,8 +284,13 @@ public class Game extends Application {
     }
 
     private int minimax(int depth, Player player) {
+        currentPlayer = player;
         List<Move> movesAvailable = board.findValidMoves(player, getPiecesForPlayer(player));
         List<Take> takesAvailable = board.findForceTakes(getPiecesForPlayer(player));
+
+        availableMoves = movesAvailable;
+        availableTakes = takesAvailable;
+
 
         if (player == player1 && playerHasWon(player)) {
             return 1000;
@@ -274,66 +301,93 @@ public class Game extends Application {
         if (depth <= depthLimit) {
             if (player == player1) {
                 int bestScore = Integer.MAX_VALUE;
-                if (!takesAvailable.isEmpty()) {
+                if (! takesAvailable.isEmpty()) {
                     for (Take take : takesAvailable) {
                         makeTake(take);
                         int eval = minimax(depth + 1, otherPlayer(player));
+                        currentPlayer = player;
                         bestScore = Math.max(bestScore, eval);
                         undoTake(take);
                         if (depth == 0) {
                             successorEvaluations.add(new MoveAndScore(take, bestScore));
                         }
-                        return bestScore;
+                        availableTakes = takesAvailable;
                     }
-                } else if (!movesAvailable.isEmpty()) {
-                    for (Move move : movesAvailable) {
+                    return bestScore;
+                } else if (! movesAvailable.isEmpty()) {
+                    for (Move move : availableMoves) {
                         makeMove(move);
                         int eval = minimax(depth + 1, otherPlayer(player));
+                        currentPlayer = player;
                         bestScore = Math.max(bestScore, eval);
                         undoMove(move);
                         if (depth == 0) {
                             successorEvaluations.add(new MoveAndScore(move, bestScore));
                         }
-                        return bestScore;
+                        availableMoves = movesAvailable;
                     }
+                    return bestScore;
                 }
             } else if (player == player2) {
                 int bestScore = Integer.MIN_VALUE;
-                if (!takesAvailable.isEmpty()) {
+                if (! takesAvailable.isEmpty()) {
                     for (Take take : takesAvailable) {
                         makeTake(take);
                         int eval = minimax(depth + 1, otherPlayer(player));
+                        currentPlayer = player;
                         bestScore = Math.min(bestScore, eval);
                         undoTake(take);
+                        if (depth == 0) {
+                            successorEvaluations.add(new MoveAndScore(take, bestScore));
+                        }
+                        availableTakes = takesAvailable;
                     }
                     return bestScore;
 
-                } else if (!availableMoves.isEmpty()) {
-                    for (Move move : movesAvailable) {
+                } else if (! movesAvailable.isEmpty()) {
+                    for (Move move : availableMoves) {
                         makeMove(move);
                         int eval = minimax(depth + 1, otherPlayer(player));
+                        currentPlayer = player;
                         bestScore = Math.min(bestScore, eval);
                         undoMove(move);
+                        if (depth == 0) {
+                            System.out.println("Adding move");
+                            successorEvaluations.add(new MoveAndScore(move, bestScore));
+                        }
+                        availableMoves = movesAvailable;
                     }
                     return bestScore;
                 }
             }
         }
-        return evaluateState();
+        return evaluateState(player);
     }
 
-    private int evaluateState() {
-            return 10;
+    private int evaluateState(Player player) {
+        int takes = 5 * (12 - getPiecesForPlayer(otherPlayer(player)).size());
+        long kingPiecesAttained = getPiecesForPlayer(player).stream()
+                .filter(Piece::isKing)
+                .count();
+
+        return takes + (int) kingPiecesAttained;
     }
 
     private void animateMove(Move move) {
         move.getPiece().moveTo(move.getDest());
+        if (move.moveCausedKing()) {
+            move.getPiece().animateKingConversion();
+        }
     }
 
     private void animateTake(Move move) {
         Take take = availableTakes.get(availableTakes.indexOf(move));
         take.getPiece().moveTo(take.getDest());
         take.getTarget().setVisible(false);
+
+        if (take.moveCausedKing()) {
+            take.getPiece().animateKingConversion();
+        }
     }
 
     private void nextMove() {

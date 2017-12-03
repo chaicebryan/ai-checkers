@@ -1,4 +1,4 @@
-package main.java.gui;
+package main.java.impl;
 
 // Player is a player within the game.
 // A player has an associated colour and side and is used to enable two player logic
@@ -31,11 +31,12 @@ public class Player {
         this.isHuman = isHuman;
     }
 
-    public void setSide(Side side) {
-        this.side = side;
-    }
-
     public Side getSide() {
         return side;
+    }
+
+    @Override
+    public String toString() {
+        return side.toString();
     }
 }

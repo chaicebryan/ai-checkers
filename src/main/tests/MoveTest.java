@@ -7,8 +7,8 @@ import java.util.HashSet;
 import org.junit.Test;
 
 import main.java.gui.Piece;
-import main.java.gui.PieceType;
-import main.java.gui.Side;
+import main.java.impl.PieceType;
+import main.java.impl.Side;
 import main.java.impl.Move;
 import main.java.impl.Position;
 import main.java.impl.Take;

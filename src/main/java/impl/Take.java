@@ -16,6 +16,11 @@ public class Take extends Move {
     }
 
     @Override
+    public boolean moveCausedKing() {
+        return target.isKing() || dest.getY() == 0 || dest.getY() == Board.HEIGHT-1;
+    }
+
+    @Override
     public int hashCode() {
         return 41 * (41 + getOrigin().getX() + dest.getX() + getOrigin().getY() + dest.getY());
     }

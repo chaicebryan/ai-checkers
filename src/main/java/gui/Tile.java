@@ -6,7 +6,10 @@ import java.util.Optional;
 
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
+import main.java.impl.Board;
 import main.java.impl.Position;
+import main.java.impl.Side;
+import main.java.impl.TileType;
 
 // This represents a tile on the game board,
 // A tile can either hold a piece or hold nothing
@@ -45,7 +48,7 @@ public class Tile extends Rectangle {
             surrounding.put(TL, Optional.empty());
         }
 
-        if (posX!=Board.HEIGHT-1 && posY!=0) {
+        if (posX!= Board.HEIGHT-1 && posY!=0) {
             surrounding.put(TR, Optional.of(new Position(posX+1, posY-1)));
         } else {
             surrounding.put(TR, Optional.empty());
@@ -115,8 +118,19 @@ public class Tile extends Rectangle {
         return surrounding;
     }
 
+//   @Override
+//   public String toString() {
+//       return "Tile [" + posX + ", " + posY + ", " + surrounding.toString() + ", " + hasPiece() + ", " + piece + "]";
+//   }
+
     @Override
     public String toString() {
-        return "Tile [" + posX + ", " + posY + ", " + surrounding.toString() + ", " + hasPiece() + ", " + piece + "]";
+        if (hasPiece() && piece.getSide() == Side.TOP) {
+            return "X";
+        } else if (hasPiece() && piece.getSide() == Side.BOTTOM) {
+            return "O";
+        } else {
+            return " ";
+        }
     }
 }

@@ -27,6 +27,10 @@ public class Move {
         return piece;
     }
 
+    public boolean moveCausedKing() {
+        return dest.getY() == 0 || dest.getY() == Board.HEIGHT-1;
+    }
+
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
