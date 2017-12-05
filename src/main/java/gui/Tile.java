@@ -16,20 +16,20 @@ import main.java.impl.TileType;
 // A tile has a position
 public class Tile extends Rectangle {
 
-    public static int HEIGHT = 70;
-    public static int WIDTH = 70;
+    public static final int HEIGHT = 70;
+    public static final int WIDTH = 70;
 
-    public static String TL = "tl";
-    public static String TR = "tr";
-    public static String BL = "bl";
-    public static String BR = "br";
+    public static final String TL = "tl";
+    public static final String TR = "tr";
+    public static final String BL = "bl";
+    public static final String BR = "br";
 
-    private int posX;
-    private int posY;
-    private HashMap<String, Optional<Position>> surrounding;
+    private final int posX;
+    private final int posY;
+    private final HashMap<String, Optional<Position>> surrounding;
 
     // Represents the colour of the tile
-    private TileType type;
+    private final TileType type;
 
     // Reference to piece if this tile has one
     private Piece piece;
@@ -42,6 +42,11 @@ public class Tile extends Rectangle {
 
         surrounding = new HashMap<>();
 
+        // This section populates the 'surrounding' HashMap with pointers
+        // to surrounding tiles so that every tile has information about
+        // its surrounding tiles
+
+        // This is used when finding valid moves and takes
         if (posX!=0 && posY!= 0) {
             surrounding.put(TL, Optional.of(new Position(posX-1, posY-1)));
         } else {
@@ -80,40 +85,35 @@ public class Tile extends Rectangle {
         } else {
             setFill(Paint.valueOf("#ffce9e"));
         }
-
-        setOnMousePressed((e) -> {
-            System.out.println(this.toString());
-        });
     }
 
-    public int getPosX() {
-        return posX;
-    }
-
-    public int getPosY() {
-        return posY;
-    }
-
+    // Return the TileType of the tile (BROWN | YELLOW)
     public TileType getType() {
         return type;
     }
 
+    // Assign the tile a piece to occupy it
     public void setPiece(Piece piece) {
         this.piece = piece;
     }
 
+    // get the piece that is occupying this tile
     public Piece getPiece() {
         return piece;
     }
 
+    // Return true if this tile is occupied by a piece
+    // false otherwise
     public boolean hasPiece() {
         return piece != null;
     }
 
+    // Remove the piece that is occupying this tile
     public void removePiece() {
         this.piece = null;
     }
 
+    // return the surrounding tiles for the tile
     public HashMap<String, Optional<Position>> getSurrounding() {
         return surrounding;
     }

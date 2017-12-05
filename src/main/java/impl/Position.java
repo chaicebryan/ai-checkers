@@ -2,6 +2,8 @@ package main.java.impl;
 
 public class Position {
 
+    // x position
+    // y position
     private int x;
     private int y;
 
@@ -10,17 +12,14 @@ public class Position {
         this.y = y;
     }
 
+    // return x position
     public int getX() {
         return x;
     }
 
+    // return y position
     public int getY() {
         return y;
-    }
-
-    public void changeTo(int x, int y) {
-        this.x = x;
-        this.y = y;
     }
 
     @Override

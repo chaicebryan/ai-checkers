@@ -2,8 +2,11 @@ package main.java.impl;
 
 import main.java.gui.Piece;
 
+// This class extends move but also contains a reference to a target piece that will be taken
+// and removed from the board
 public class Take extends Move {
 
+    // The piece that will be taken
     private Piece target;
 
     public Take(Piece taker, Position dest, Piece target) {
@@ -11,6 +14,7 @@ public class Take extends Move {
         this.target = target;
     }
 
+    // return the target piece
     public Piece getTarget() {
         return target;
     }

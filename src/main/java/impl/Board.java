@@ -12,65 +12,29 @@ import java.util.Optional;
 
 import main.java.gui.Piece;
 import main.java.gui.Tile;
-import main.java.impl.Move;
-import main.java.impl.Player;
-import main.java.impl.Position;
-import main.java.impl.Side;
-import main.java.impl.Take;
-import main.java.impl.TileType;
 
 // The Board class is a state representation of the board that contains a number of operations for editing this state
 public class Board {
 
     // Number of squares on each side (HEIGHT * WIDTH)
-    public static int HEIGHT = 8;
-    public static int WIDTH = 8;
+    public static final int HEIGHT = 8;
+    public static final int WIDTH = 8;
 
     // Board is represented using a 2D array of Tile objects
     // Some tiles will contain pieces
     private Tile[][] state;
 
+    // Creates new board of specified dimensions
     public Board() {
         state = new Tile[HEIGHT][WIDTH];
     }
 
+    // Returns the underlying array representation of the board
     public Tile[][] getState() {
         return state;
     }
 
-    // Attempts a move from the pieces original position to a specified new position
-    // If the move is valid and was made then this method returns true so that we can end the players turn
- //  public Boolean attemptMove(Player player, Move move) {
- //      if (moveIsValid(player, move)) {
- //          // Update tile content
- //          // Remove piece from old position
- //          this.tileAt(move.getDest()).setPiece(move.getPiece());
- //          this.removePieceAt(move.getPiece().getPosition());
-
- //          // Move piece to new position
- //          move.getPiece().updatePositionTo(move.getDest());
- //          move.getPiece().relocate(move.getDest().getX() * Piece.WIDTH,move.getDest().getY() * Piece.HEIGHT);
- //          return true;
- //      } else {
-
- //          switch (move.getStatusCode()) {
- //              case 1: Game.updates.appendText("Out Of Bounds\n");
- //              break;
- //              case 2: Game.updates.appendText("Can't move that far\n");
- //              break;
- //              case 3: Game.updates.appendText("Only diagonal moves allowed\n");
- //              break;
- //              case 4: Game.updates.appendText("Tile already occupied\n");
- //              break;
- //              case 5: Game.updates.appendText("This piece cannot move in that direction\n");
- //              break;
- //          }
- //          // Snap back to original position
- //          move.getPiece().relocate(move.getPiece().getPosition().getX() * Piece.WIDTH, move.getPiece().getPosition().getY() * Piece.HEIGHT);
- //          return false;
- //      }
- //  }
-
+    // Makes the necessary state updates given a move
     public void acceptMove(Move move) {
         if (move instanceof Take) {
             Take take = (Take) move;
@@ -87,21 +51,24 @@ public class Board {
     // It also checks that this move is valid for the player, depending on which side they are on, on the board
     private boolean moveIsValid(Player player, Move move) {
 
+        // Don't allow a player to move another players pieces
         if (player.getSide() != move.getPiece().getSide()) {
+            move.setStatusCode(1);
             return false;
         }
         // Don't let pieces go off the board
         // This should come first to prevent any exceptions on further board operations
         if (outOfBounds(move.getDest())) {
             if (player.isHuman()) {
-                move.setStatusCode(1);
+                move.setStatusCode(2);
             }
             return false;
         }
 
+        // Limit distance moved per move to one square only
         if (Math.abs(move.getPiece().getPosition().getX() - move.getDest().getX()) > 1 || Math.abs(move.getPiece().getPosition().getY() - move.getDest().getY()) > 1 ) {
             if (player.isHuman()) {
-                move.setStatusCode(2);
+                move.setStatusCode(3);
             }
             return false;
         }
@@ -109,7 +76,7 @@ public class Board {
         // Only diagonal moves are allowed for any move to be valid
         if (placedOnWrongColour(move.getDest())) {
             if (player.isHuman()) {
-                move.setStatusCode(3);
+                move.setStatusCode(4);
             }
             return false;
         }
@@ -117,7 +84,7 @@ public class Board {
         // Can't move a piece to a tile that already contains a piece
         if (tileAlreadyOccupied(move.getDest())) {
             if (player.isHuman()) {
-                move.setStatusCode(4);
+                move.setStatusCode(5);
             }
             return false;
         }
@@ -126,21 +93,31 @@ public class Board {
         // But exceptions are made for king pieces
         if (!directionIsValid(player, move)) {
             if (player.isHuman()) {
-                move.setStatusCode(5);
+                move.setStatusCode(6);
             }
             return false;
         }
-
         return true;
     }
 
+    // Get the failure code for a move
+    public int returnFailureCode(Player player, Move move) {
+        moveIsValid(player, move);
+        return move.getStatusCode();
+    }
+
+    // Given a player and their list of pieces find all moves that can be made
+    // with these pieces
     public ArrayList<Move> findValidMoves(Player player, List<Piece> pieces) {
         ArrayList<Move> moves = findPossibleDestinationsForPieces(pieces);
-
         moves.removeIf(move -> !moveIsValid(player, move));
         return moves;
     }
 
+    // Given a list of pieces, for each piece, find all possible places it can move to
+    // This method takes into account the surround area of each piece and adds each surrounding
+    // area regardless of whether that area is already occupied. However it takes into account
+    // when pieces are near the edge of the board by assigning non-existent destinations with Optional.EMPTY
     private ArrayList<Move> findPossibleDestinationsForPieces(List<Piece> pieces) {
         ArrayList<Move> possibleMoves = new ArrayList<>();
         pieces.forEach((piece) -> {
@@ -171,6 +148,8 @@ public class Board {
         return possibleMoves;
     }
 
+    // Given a list of pieces identify any force takes for each
+    // If no force takes are found then return an empty list
     public ArrayList<Take> findForceTakes(List<Piece> pieces) {
         ArrayList<Take> takes = new ArrayList<>();
 
@@ -214,20 +193,25 @@ public class Board {
         return takes;
     }
 
+    // Given a piece, its surrounding tiles and a nearby square to search (either TL, TR, BL, BR)
+    // return the force take associated with that square, if any
     private Optional<Take> getTakeIfAny(Piece piece, Map<String, Optional<Position>> surrounding, String nearby) {
         Piece potentialOpponent = tileAt(surrounding.get(nearby).get()).getPiece();
 
-        if (potentialOpponent.getSide() != piece.getSide() && pieceIsVulnarable(potentialOpponent, nearby)) {
+        if (potentialOpponent.getSide() != piece.getSide() && pieceIsVulnerable(potentialOpponent, nearby)) {
             return Optional.of(new Take(piece, tileAt(potentialOpponent.getPosition()).getSurrounding().get(nearby).get(), potentialOpponent));
         }
         return Optional.empty();
     }
 
+    // If a square exists at a nearby (either TL, TR, BL, BR) position and has a piece
+    // then return true, else false
     private boolean potentialTake(Map<String, Optional<Position>> surrounding, String nearBy) {
         return surrounding.get(nearBy).isPresent() && tileAt(surrounding.get(nearBy).get()).hasPiece();
     }
 
-    private boolean pieceIsVulnarable(Piece potentialOpponent, String near) {
+    // If a potential opponent's TL, TR, BL or BR is empty then this piece is vulnerable to a take
+    private boolean pieceIsVulnerable(Piece potentialOpponent, String near) {
         return tileAt(potentialOpponent.getPosition()).getSurrounding().get(near).isPresent() &&
                 !tileAt(tileAt(potentialOpponent.getPosition()).getSurrounding().get(near).get()).hasPiece();
     }
@@ -272,16 +256,6 @@ public class Board {
                 return false;
             }
             return true;
-    }
-
-    private void printRow(Tile[] row) {
-        String rows = "";
-        String theRow = "";
-        for (Tile tile : row) {
-            theRow += tile + "\t";
-        }
-        rows += theRow;
-        System.out.println();
     }
 
     public void printAsGrid() {

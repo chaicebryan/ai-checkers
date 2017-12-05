@@ -16,14 +16,15 @@ import main.java.impl.Side;
 // Piece represents a piece that exists within a tile on the board.
 // It has an x. y position
 // It has some metadata (WIDTH and HEIGHT in pixels) to enable drawing to a screen
+@SuppressWarnings("WeakerAccess")
 public class Piece extends Circle {
 
     // Width and height in pixels
-    public static int WIDTH = 70;
-    public static int HEIGHT = 70;
+    public static final int WIDTH = 70;
+    public static final int HEIGHT = 70;
 
     // The colour of the piece
-    private PieceType pieceType;
+    private final PieceType pieceType;
 
     // The position of the piece on the 8x8 board
     private Position boardPosition;
@@ -31,17 +32,11 @@ public class Piece extends Circle {
     // Is the piece a king or not
     private Boolean isKing;
 
-    // All nearby pieces that are diagonal to this piece
-    private HashSet<Piece> nearbyPieces;
-
-    // All nearby opponents that are diagonal to this piece
-    private HashSet<Piece> nearbyOpponents;
-
     // The side fo the board that this piece started from
-    private Side side;
+    private final Side side;
 
     // Used to reset pieces to default colour
-    private Color defaultStroke;
+    private final Color defaultStroke;
 
 
     public Piece(double posX, double posY, PieceType pieceType, Side side) {
@@ -49,8 +44,6 @@ public class Piece extends Circle {
         boardPosition = new Position((int)posX, (int)posY);
         this.pieceType = pieceType;
         isKing = false;
-        nearbyPieces = new HashSet<>();
-        nearbyOpponents = new HashSet<>();
         this.side = side;
 
 
@@ -100,10 +93,13 @@ public class Piece extends Circle {
         this.isKing = true;
     }
 
+    // remove king status
     public void demote() {
         this.isKing = false;
     }
 
+    // draw crown on piece to be used when
+    // converting to king
     public void animateKingConversion() {
         Image image;
         if (pieceType == PieceType.RED) {
@@ -111,27 +107,31 @@ public class Piece extends Circle {
         } else {
             image = new Image("blackking.png");
         }
-
         ImagePattern imv = new ImagePattern(image);
         this.setFill(imv);
     }
 
+    // returns position of the piece
     public Position getPosition() {
         return boardPosition;
     }
 
+    // returns true if this piece is a king, false otherwise
     public boolean isKing() {
         return isKing;
     }
 
+    // returns what side of the board that this piece is affiliated with
     public Side getSide() {
         return side;
     }
 
+    // return the default stroke (around the edge of each piece)
     public Paint getDefaultStroke() {
         return defaultStroke;
     }
 
+    // animate the movement of the piece
     public void moveTo(Position newPos) {
         relocate(newPos.getX() * WIDTH, newPos.getY() * HEIGHT);
     }

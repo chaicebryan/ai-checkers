@@ -2,11 +2,17 @@ package main.java.impl;
 
 import main.java.gui.Piece;
 
+// This class represents a move on the board
+// Moves contain:
+// * The piece that is being moved
+// * The origin of the piece (where it is moving from)
+// * The destination the piece is moving to
+// * A status code
 public class Move {
 
-    protected Position dest;
-    protected Piece piece;
-    protected Position origin;
+    protected final Position dest;
+    protected final Piece piece;
+    protected final Position origin;
     protected int statusCode;
 
     public Move(Piece piece, Position dest) {
@@ -15,22 +21,29 @@ public class Move {
         origin = piece.getPosition();
     }
 
+    // Return the position that the piece is moving from
     public Position getOrigin() {
         return origin;
     }
 
+    // return the position that the piece is moving to
     public Position getDest() {
         return dest;
     }
 
+    // Return the peices that is moving
     public Piece getPiece() {
         return piece;
     }
 
+    // Return true if the move caused a king conversion
     public boolean moveCausedKing() {
         return dest.getY() == 0 || dest.getY() == Board.HEIGHT-1;
     }
 
+    // Override equals to make it possible for moves to be equal to takes in some cases
+    // This is useful when determining whether a users move is a take by taking a users
+    // move and determining if a take exists that matches it
     @Override
     public boolean equals(Object o) {
         if (this == o) return true;
@@ -54,10 +67,14 @@ public class Move {
         return result;
     }
 
+    // Set a status code for the move
+    // This is what is used to display reasons as to why
+    // a move was denied
     public void setStatusCode(int code) {
         this.statusCode = code;
     }
 
+    // Return the status code for the move
     public int getStatusCode() {
         return statusCode;
     }
@@ -69,6 +86,6 @@ public class Move {
 
     @Override
     public String toString() {
-        return piece.getPosition() + " to " + dest;
+        return origin + " to " + dest;
     }
 }
