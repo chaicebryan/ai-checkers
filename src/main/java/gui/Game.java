@@ -49,7 +49,9 @@ public class Game extends Application {
     private boolean gameInProgress;
     private static TextArea updates;
     private List<MoveAndScore> successorEvaluations;
-    private int depthLimit = 10;
+
+    private Slider difficulty;
+    private int depthLimit;
 
     public Game() {
         board = new Board();
@@ -148,23 +150,21 @@ public class Game extends Application {
     // When two AIs play against each other we run a loop
     // with some threading logic to make moves visible
     private void runAIGame() {
-        while (true) {
-            new Thread(() -> {
+        while (gameInProgress) {
+            Thread moveThread= new Thread(() -> {
                 makeAIMove();
                 try {
                     Thread.currentThread().sleep(1000);
                 } catch (InterruptedException e) {
                     e.printStackTrace();
                 }
-            }).start();
+            });
+            moveThread.start();
+
             try {
-                Thread.currentThread().sleep(1000);
+                moveThread.join();
             } catch (InterruptedException e) {
-                e.printStackTrace();
-            }
-            if (Thread.currentThread().isInterrupted()) {
-                System.out.println(true);
-                break;
+                Thread.currentThread().interrupt();
             }
         }
     }
@@ -337,7 +337,7 @@ public class Game extends Application {
     // Runs minimax starting from a depth of zero
     private void startSimulation() {
         successorEvaluations = new ArrayList<>();
-        minimax(0, player2);
+        minimax(0, currentPlayer, Integer.MIN_VALUE, Integer.MAX_VALUE);
     }
 
     // From a list of successor moves attain the best one for the current player
@@ -353,7 +353,7 @@ public class Game extends Application {
 
     Once we reach a depth of 0 re run evaluateBoardState which returns the current score of the board
      */
-    private int minimax(int depth, Player player) {
+    private int minimax(int depth, Player player, int alpha, int beta) {
         currentPlayer = player;
         List<Move> movesAvailable = board.findValidMoves(player, getPiecesForPlayer(player));
         List<Take> takesAvailable = board.findForceTakes(getPiecesForPlayer(player));
@@ -369,62 +369,83 @@ public class Game extends Application {
 
         if (depth <= depthLimit) {
             if (player == player1) {
-                int bestScore = Integer.MAX_VALUE;
-                if (! takesAvailable.isEmpty()) {
-                    for (Take take : takesAvailable) {
-                        makeTake(take);
-                        int eval = minimax(depth + 1, otherPlayer(player));
-                        currentPlayer = player;
-                        bestScore = Math.max(bestScore, eval);
-                        undoTake(take);
-                        if (depth == 0) {
-                            successorEvaluations.add(new MoveAndScore(take, bestScore));
-                        }
-                        availableTakes = takesAvailable;
-                    }
-                    return bestScore;
-                } else if (! movesAvailable.isEmpty()) {
-                    for (Move move : availableMoves) {
-                        makeMove(move);
-                        int eval = minimax(depth + 1, otherPlayer(player));
-                        currentPlayer = player;
-                        bestScore = Math.max(bestScore, eval);
-                        undoMove(move);
-                        if (depth == 0) {
-                            successorEvaluations.add(new MoveAndScore(move, bestScore));
-                        }
-                        availableMoves = movesAvailable;
-                    }
-                    return bestScore;
-                }
-            } else if (player == player2) {
                 int bestScore = Integer.MIN_VALUE;
                 if (! takesAvailable.isEmpty()) {
                     for (Take take : takesAvailable) {
                         makeTake(take);
-                        int eval = minimax(depth + 1, otherPlayer(player));
+                        int eval = minimax(depth + 1, otherPlayer(player), alpha, beta);
                         currentPlayer = player;
-                        bestScore = Math.min(bestScore, eval);
+                        bestScore = Math.max(bestScore, eval);
+                        alpha = Math.max(alpha, eval);
                         undoTake(take);
                         if (depth == 0) {
                             successorEvaluations.add(new MoveAndScore(take, bestScore));
                         }
                         availableTakes = takesAvailable;
+                        if (alpha >= beta) {
+                            System.out.println("pruuuuning");
+                            break;
+                        }
                     }
                     return bestScore;
-
                 } else if (! movesAvailable.isEmpty()) {
                     for (Move move : availableMoves) {
                         makeMove(move);
-                        int eval = minimax(depth + 1, otherPlayer(player));
+                        int eval = minimax(depth + 1, otherPlayer(player), alpha, beta);
+                        currentPlayer = player;
+                        bestScore = Math.max(bestScore, eval);
+                        alpha = Math.max(eval, alpha);
+                        undoMove(move);
+
+                        if (depth == 0) {
+                            successorEvaluations.add(new MoveAndScore(move, bestScore));
+                        }
+                        availableMoves = movesAvailable;
+                        if (alpha >= beta) {
+                            System.out.println("pruuuuning");
+                            break;
+                        }
+                    }
+                    return bestScore;
+                }
+            } else if (player == player2) {
+                int bestScore = Integer.MAX_VALUE;
+                if (! takesAvailable.isEmpty()) {
+                    for (Take take : takesAvailable) {
+                        makeTake(take);
+                        int eval = minimax(depth + 1, otherPlayer(player), alpha, beta);
                         currentPlayer = player;
                         bestScore = Math.min(bestScore, eval);
+                        beta = Math.min(beta, eval);
+                        undoTake(take);
+                        if (depth == 0) {
+                            successorEvaluations.add(new MoveAndScore(take, bestScore));
+                        }
+                        availableTakes = takesAvailable;
+                        if (alpha >= beta) {
+                            System.out.println("pruuuuning");
+                            break;
+                        }
+                    }
+                    return bestScore;
+
+                } else if (!movesAvailable.isEmpty()) {
+                    for (Move move : availableMoves) {
+                        makeMove(move);
+                        int eval = minimax(depth + 1, otherPlayer(player), alpha, beta);
+                        currentPlayer = player;
+                        bestScore = Math.min(bestScore, eval);
+                        beta = Math.min(beta, eval);
                         undoMove(move);
                         if (depth == 0) {
                             System.out.println("Adding move");
                             successorEvaluations.add(new MoveAndScore(move, bestScore));
                         }
                         availableMoves = movesAvailable;
+                        if (alpha >= beta) {
+                            System.out.println("pruuuuning");
+                            break;
+                        }
                     }
                     return bestScore;
                 }
@@ -569,7 +590,7 @@ public class Game extends Application {
         );
 
         primaryStage.setScene(scene);
-        primaryStage.setMinHeight(Board.HEIGHT * Tile.HEIGHT + 30);
+        primaryStage.setMinHeight(Board.HEIGHT * Tile.HEIGHT);
         primaryStage.setMaxWidth(Board.WIDTH * Tile.WIDTH + 240);
         primaryStage.setMinWidth(Board.WIDTH * Tile.WIDTH + 240);
         primaryStage.show();
@@ -610,13 +631,17 @@ public class Game extends Application {
         VBox difficultyBox = new VBox();
         difficultyBox.setPadding(new Insets(10, 0, 10, 0));
         Label difficultyLabel = new Label("difficulty:");
-        Slider difficulty = new Slider(1, 4, 1);
+        difficulty = new Slider(1, 10, 1);
         difficulty.setShowTickLabels(true);
         difficulty.setShowTickMarks(true);
         difficulty.setBlockIncrement(1);
         difficulty.setMajorTickUnit(1);
+        difficulty.setMinorTickCount(0);
         difficulty.setSnapToTicks(true);
+        difficulty.setValue(5);
+
         difficultyBox.getChildren().addAll(difficultyLabel, difficulty);
+
         return difficultyBox;
     }
 
@@ -632,6 +657,9 @@ public class Game extends Application {
                 setUpPieces();
                 boardPane.getChildren().addAll(redPieces);
                 boardPane.getChildren().addAll(blackPieces);
+
+                depthLimit = (int) difficulty.getValue();
+                System.out.println(depthLimit);
                 startNewTurn();
 
                 if (!player1.isHuman() && !player2.isHuman()) {
@@ -642,13 +670,18 @@ public class Game extends Application {
                     regularMatch.start();
                 }
             } else {
-                System.out.println("Game already in progress");
+                updates.appendText("Game already in progress!\n");
             }
         });
 
         Button stop = new Button("stop");
         stop.setOnAction((event -> {
-            resetGame();
+            if (!gameInProgress) {
+                updates.appendText("Game stopped\n");
+                updates.appendText("Press start for a new game\n");
+            } else {
+                resetGame();
+            }
         }));
         stop.setPrefSize(100, 40);
 
@@ -658,9 +691,7 @@ public class Game extends Application {
             Desktop desktop = Desktop.getDesktop();
             try {
                 desktop.browse(new URI("http://www.indepthinfo.com/checkers/play.shtml"));
-            } catch (IOException e1) {
-                e1.printStackTrace();
-            } catch (URISyntaxException e1) {
+            } catch (IOException | URISyntaxException e1) {
                 e1.printStackTrace();
             }
         });

@@ -4,6 +4,7 @@ package main.java.gui;
 import java.util.HashMap;
 import java.util.Optional;
 
+import javafx.scene.paint.Color;
 import javafx.scene.paint.Paint;
 import javafx.scene.shape.Rectangle;
 import main.java.impl.Board;
@@ -85,6 +86,8 @@ public class Tile extends Rectangle {
         } else {
             setFill(Paint.valueOf("#ffce9e"));
         }
+
+        setStroke(Color.BLACK);
     }
 
     // Return the TileType of the tile (BROWN | YELLOW)
