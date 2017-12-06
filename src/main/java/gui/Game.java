@@ -7,6 +7,7 @@ import java.net.URISyntaxException;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.List;
+import java.util.Stack;
 
 import javafx.application.Application;
 import javafx.geometry.Insets;
@@ -49,6 +50,7 @@ public class Game extends Application {
     private boolean gameInProgress;
     private static TextArea updates;
     private List<MoveAndScore> successorEvaluations;
+    private Stack<Take> takesMade;
 
     private Slider difficulty;
     private int depthLimit;
@@ -66,6 +68,7 @@ public class Game extends Application {
         availableTakes = new ArrayList<>();
         gameInProgress = false;
         successorEvaluations = new ArrayList<>();
+        takesMade = new Stack<>();
     }
 
     // This creates all of the tiles and places them on within a pane before returning the pane
@@ -231,7 +234,15 @@ public class Game extends Application {
 
         // If other player is an AI then get then make the AI's next move
         if (!currentPlayer.isHuman()) {
-            makeAIMove();
+            Thread aiMoveThread = new Thread(() -> {
+                makeAIMove();
+            });
+            aiMoveThread.start();
+            try {
+                aiMoveThread.join();
+            } catch (InterruptedException e) {
+                Thread.currentThread().interrupt();
+            }
         }
     }
 
@@ -327,11 +338,25 @@ public class Game extends Application {
         if (availableTakes.contains(aiMove)) {
             makeTake(aiMove);
             animateTake(aiMove);
+            updates.appendText("(" + currentPlayer.getName() +  ") Take: " + aiMove.toString() + "\n");
+            unmarkForceTakes(availableTakes);
+            availableTakes = board.findForceTakes(Collections.singletonList(aiMove.getPiece()));
+            if (availableTakes.isEmpty()) {
+                nextMove();
+            } else {
+                try {
+                    Thread.currentThread().sleep(1000);
+                } catch (InterruptedException e) {
+                    Thread.currentThread().interrupt();
+                }
+                makeAIMove();
+            }
         } else {
             makeMove(aiMove);
             animateMove(aiMove);
+            updates.appendText("(" + currentPlayer.getName() +  ") Move: " + aiMove.toString() + "\n");
+            nextMove();
         }
-        nextMove();
     }
 
     // Runs minimax starting from a depth of zero
